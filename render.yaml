@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: likya-guvenlik-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "0"
+    autoDeploy: true
+    healthCheckPath: /api/health
+    domains:
+      - likya-guvenlik-api.onrender.com
