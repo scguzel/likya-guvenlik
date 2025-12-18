@@ -1,0 +1,32 @@
+{
+  "name": "likya-guvenlik",
+  "version": "1.0.0",
+  "description": "Likya Yolu Güvenlik ve Rota Optimizasyonu Sistemi",
+  "main": "backend.py",
+  "scripts": {
+    "start": "python backend.py",
+    "serve": "python -m http.server 8000",
+    "dev": "concurrently \"python backend.py\" \"python -m http.server 8000\"",
+    "build": "echo 'Proje statik dosyalardan oluşmaktadır'",
+    "test": "echo 'Testler henüz eklenmedi'"
+  },
+  "keywords": [
+    "likya",
+    "hiking",
+    "safety",
+    "ai",
+    "machine-learning",
+    "route-optimization",
+    "turkey"
+  ],
+  "author": "Lise Öğrencileri",
+  "license": "MIT",
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "chart.js": "^3.9.1",
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  }
+}

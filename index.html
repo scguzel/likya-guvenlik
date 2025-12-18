@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Likya Yolu - Güvenlik ve Rota Optimizasyonu</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar-custom {
+            background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-brand i {
+            margin-right: 0.5rem;
+            color: #ff6b6b;
+        }
+
+        .container-main {
+            display: flex;
+            height: calc(100vh - 80px);
+            gap: 0;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: white;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1e3c72;
+            margin: 1.5rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #2a5298;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            border-left: 4px solid #2a5298;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateX(2px);
+        }
+
+        .info-card h5 {
+            color: #1e3c72;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        .risk-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .risk-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .risk-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .weather-item {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .weather-item .value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2a5298;
+        }
+
+        .weather-item .label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .btn-custom {
+            background: linear-gradient(90deg, #2a5298 0%, #1e3c72 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            width: 100%;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.4);
+            color: white;
+        }
+
+        .btn-emergency {
+            background: linear-gradient(90deg, #ff6b6b 0%, #ee5a6f 100%);
+        }
+
+        .btn-emergency:hover {
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-gps {
+            background: linear-gradient(90deg, #51cf66 0%, #37b24d 100%);
+        }
+
+        .btn-gps:hover {
+            box-shadow: 0 4px 12px rgba(81, 207, 102, 0.4);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            color: #666;
+            font-weight: bold;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: #2a5298;
+            border-bottom-color: #2a5298;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .gps-status {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #51cf66;
+        }
+
+        .gps-status.inactive {
+            border-left-color: #ff6b6b;
+        }
+
+        .gps-status .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #51cf66;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .gps-status.inactive .status-indicator {
+            background: #ff6b6b;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .stage-item {
+            background: white;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            border-left: 4px solid #2a5298;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stage-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateX(2px);
+        }
+
+        .stage-item .stage-name {
+            font-weight: bold;
+            color: #1e3c72;
+            font-size: 0.95rem;
+        }
+
+        .stage-item .stage-info {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .facility-item {
+            background: white;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            border-top: 3px solid #2a5298;
+        }
+
+        .facility-item .facility-name {
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .facility-item .facility-type {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+        }
+
+        .language-selector select {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            background: white;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .container-main {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 50vh;
+                border-radius: 8px 8px 0 0;
+                margin: 1rem;
+            }
+
+            .map-container {
+                height: 50vh;
+                margin: 1rem;
+                border-radius: 8px;
+            }
+
+            #map {
+                border-radius: 8px;
+            }
+        }
+
+        .modal-custom {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-custom.show {
+            display: flex;
+        }
+
+        .modal-content-custom {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-content-custom h3 {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+        }
+
+        .modal-content-custom p {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .modal-buttons button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-confirm {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #dee2e6;
+            color: #333;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2a5298;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .chart-container canvas {
+            max-height: 200px;
+        }
+
+        .scroll-area {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scroll-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .scroll-area::-webkit-scrollbar-thumb {
+            background: #2a5298;
+            border-radius: 10px;
+        }
+
+        .scroll-area::-webkit-scrollbar-thumb:hover {
+            background: #1e3c72;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <i class="fas fa-mountain"></i>
+                Likya Yolu Güvenlik Sistemi
+            </span>
+            <div class="language-selector">
+                <select id="languageSelect" onchange="changeLanguage(this.value)">
+                    <option value="tr">🇹🇷 Türkçe</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="ru">🇷🇺 Русский</option>
+                    <option value="fr">🇫🇷 Français</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-main">
+        <!-- Sidebar -->
+        <div class="sidebar scroll-area">
+            <!-- GPS Status -->
+            <div class="gps-status" id="gpsStatus">
+                <span class="status-indicator"></span>
+                <span id="gpsStatusText">GPS Kapalı</span>
+            </div>
+
+            <!-- GPS Buttons -->
+            <button class="btn-custom btn-gps" onclick="startGPS()">
+                <i class="fas fa-location-dot"></i> GPS'i Başlat
+            </button>
+            <button class="btn-custom" onclick="centerMap()">
+                <i class="fas fa-crosshairs"></i> Konumuma Git
+            </button>
+            <button class="btn-custom btn-emergency" onclick="showEmergency()">
+                <i class="fas fa-exclamation-triangle"></i> SOS - Acil Durum
+            </button>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('overview')">Genel</button>
+                <button class="tab-btn" onclick="switchTab('weather')">Hava</button>
+                <button class="tab-btn" onclick="switchTab('stages')">Etaplar</button>
+                <button class="tab-btn" onclick="switchTab('facilities')">Tesisler</button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="section-title">Likya Yolu Bilgileri</div>
+                <div class="info-card">
+                    <h5>Toplam Uzunluk</h5>
+                    <p>540 km</p>
+                </div>
+                <div class="info-card">
+                    <h5>Etap Sayısı</h5>
+                    <p>32 Etap</p>
+                </div>
+                <div class="info-card">
+                    <h5>Zorluk Seviyesi</h5>
+                    <p>Orta - Zor</p>
+                </div>
+                <div class="info-card">
+                    <h5>Tavsiye Edilen Süre</h5>
+                    <p>15-20 Gün</p>
+                </div>
+                <div class="section-title">Güvenlik Durumu</div>
+                <div class="info-card">
+                    <h5>Mevcut Risk Seviyesi</h5>
+                    <p>Harita üzerinde seçilen bölgeye göre değişir</p>
+                    <span class="risk-badge risk-medium">Orta Risk</span>
+                </div>
+            </div>
+
+            <!-- Weather Tab -->
+            <div id="weather" class="tab-content">
+                <div class="section-title">Canlı Hava Durumu</div>
+                <div class="info-card">
+                    <h5>Güncel Koşullar</h5>
+                    <div class="weather-grid">
+                        <div class="weather-item">
+                            <div class="value" id="tempValue">--°C</div>
+                            <div class="label">Sıcaklık</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="value" id="humidityValue">--%</div>
+                            <div class="label">Nem</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="value" id="windValue">-- km/h</div>
+                            <div class="label">Rüzgar</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="value" id="pressureValue">-- mb</div>
+                            <div class="label">Basınç</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-title">Geçmiş Yıllar Hava Durumu</div>
+                <div class="chart-container">
+                    <canvas id="weatherChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Stages Tab -->
+            <div id="stages" class="tab-content">
+                <div class="section-title">32 Etap Listesi</div>
+                <div id="stagesList"></div>
+            </div>
+
+            <!-- Facilities Tab -->
+            <div id="facilities" class="tab-content">
+                <div class="section-title">Konaklama ve Tesisler</div>
+                <div id="facilitiesList"></div>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <!-- Emergency Modal -->
+    <div id="emergencyModal" class="modal-custom">
+        <div class="modal-content-custom">
+            <h3><i class="fas fa-exclamation-triangle"></i> Acil Durum Bildirimi</h3>
+            <p>Acil durumda, aşağıdaki seçeneklerden birini seçin:</p>
+            <div style="margin: 1.5rem 0;">
+                <button class="btn-custom" onclick="callEmergency('police')">
+                    <i class="fas fa-phone"></i> Polis Çağır (155)
+                </button>
+                <button class="btn-custom" onclick="callEmergency('ambulance')">
+                    <i class="fas fa-phone"></i> Ambulans Çağır (112)
+                </button>
+                <button class="btn-custom" onclick="callEmergency('mountain')">
+                    <i class="fas fa-phone"></i> Dağ Kurtarma (177)
+                </button>
+            </div>
+            <p style="font-size: 0.9rem; color: #666; margin-top: 1rem;">
+                <i class="fas fa-info-circle"></i> Konumunuz otomatik olarak gönderilecektir.
+            </p>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeEmergency()">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
