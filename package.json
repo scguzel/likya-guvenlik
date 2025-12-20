@@ -7,7 +7,7 @@
     "start": "python backend.py",
     "serve": "python -m http.server 8000",
     "dev": "concurrently \"python backend.py\" \"python -m http.server 8000\"",
-    "build": "echo 'Proje statik dosyalardan oluşmaktadır'",
+    "build": "echo 'Statik dosyalar hazır'",
     "test": "echo 'Testler henüz eklenmedi'"
   },
   "keywords": [
@@ -28,5 +28,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.0.0"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
