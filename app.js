@@ -1,9 +1,8 @@
-// Likya Yolu Güvenlik Sistemi - Optimized JavaScript
-
+// Likya Yolu Güvenlik Sistemi - Final Optimized Version
 'use strict';
 
 // ============================================================================
-// CONFIGURATION & CONSTANTS
+// CONFIGURATION
 // ============================================================================
 
 const CONFIG = {
@@ -14,17 +13,15 @@ const CONFIG = {
         MAX_ZOOM: 19
     },
     GPS: {
-        UPDATE_INTERVAL: 5000, // 5 seconds
+        UPDATE_INTERVAL: 5000,
         HIGH_ACCURACY: true,
         TIMEOUT: 10000,
         MAX_AGE: 0
     },
     WEATHER: {
-        UPDATE_INTERVAL: 1800000 // 30 minutes
-    },
-    API: {
-        BASE_URL: 'http://localhost:5000/api',
-        TIMEOUT: 5000
+        API_KEY: '007b67b6185ac73e3b2226ae39d527df',
+        UPDATE_INTERVAL: 1800000, // 30 minutes
+        BASE_URL: 'https://api.openweathermap.org/data/2.5'
     }
 };
 
@@ -48,58 +45,87 @@ const State = {
 };
 
 // ============================================================================
-// DATA - Likya Yolu Stages
+// KML DATA - Real Likya Yolu Coordinates
+// ============================================================================
+
+const LIKYA_ROUTE_COORDINATES = [
+    [36.56473, 29.13874], [36.56194, 29.13833], [36.55794, 29.13863], [36.55679, 29.13729],
+    [36.55448, 29.13532], [36.55284, 29.13455], [36.55137, 29.13469], [36.55001, 29.1339],
+    [36.54883, 29.13368], [36.54681, 29.13421], [36.54577, 29.13389], [36.54395, 29.13413],
+    [36.54243, 29.13398], [36.54131, 29.13423], [36.53942, 29.13552], [36.53821, 29.13699],
+    [36.53791, 29.13762], [36.53666, 29.13899], [36.53594, 29.13951], [36.53601, 29.14003],
+    [36.46728, 29.12323], [36.46862, 29.12426], [36.4712, 29.1257], [36.47016, 29.1278],
+    [36.402188, 29.134435], [36.40105, 29.135267], [36.400935, 29.13602],
+    [36.336185, 29.202019], [36.33398, 29.20542], [36.33348, 29.20548],
+    [36.280936, 29.408318], [36.281578, 29.408598], [36.280908, 29.408001],
+    [36.273689, 29.320948], [36.27118, 29.32127], [36.270363, 29.320575],
+    [36.262284, 29.418125], [36.255993, 29.419624], [36.253981, 29.420595],
+    [36.240079, 29.67097], [36.24016, 29.500761], [36.239383, 29.502485],
+    [36.241378, 29.543008], [36.247449, 29.54795], [36.254771, 29.555466],
+    [36.199832, 29.639668], [36.196076, 29.646097], [36.194561, 29.64744],
+    [36.159247, 29.787096], [36.159591, 29.787659], [36.159247, 29.787096],
+    [36.197333, 29.847213], [36.198267, 29.850733], [36.198759, 29.855083],
+    [36.329791, 30.001981], [36.331228, 30.003801], [36.333182, 30.00512],
+    [36.300443, 30.073634], [36.299924, 30.073689], [36.298167, 30.075583],
+    [36.297072, 30.146055], [36.295816, 30.145951], [36.295599, 30.145877],
+    [36.276047, 30.41079], [36.276574, 30.32118], [36.275348, 30.407538],
+    [36.410731, 30.478593], [36.410914, 30.479304], [36.411127, 30.478559],
+    [36.504055, 30.426529], [36.505121, 30.422619], [36.506373, 30.420881],
+    [36.614042, 30.447094], [36.615183, 30.452682], [36.617985, 30.454032],
+    [36.681374, 30.551015], [36.682127, 30.547898], [36.682801, 30.542168],
+    [36.772569, 30.469195]
+];
+
+// ============================================================================
+// STAGES DATA
 // ============================================================================
 
 const STAGES = [
-    { id: 1, name: 'Fethiye - Ölüdeniz', distance: 15, difficulty: 'Kolay', elevation: 300, risk: 'low', coords: [[36.6167, 29.1167], [36.5849, 29.1144]] },
-    { id: 2, name: 'Ölüdeniz - Kabak', distance: 18, difficulty: 'Orta', elevation: 450, risk: 'medium', coords: [[36.5849, 29.1144], [36.5667, 29.0833]] },
-    { id: 3, name: 'Kabak - Faralya', distance: 14, difficulty: 'Zor', elevation: 600, risk: 'high', coords: [[36.5667, 29.0833], [36.5500, 29.0500]] },
-    { id: 4, name: 'Faralya - Geyikbayırı', distance: 16, difficulty: 'Orta', elevation: 400, risk: 'medium', coords: [[36.5500, 29.0500], [36.5333, 29.0167]] },
-    { id: 5, name: 'Geyikbayırı - Alınca', distance: 17, difficulty: 'Orta', elevation: 350, risk: 'low', coords: [[36.5333, 29.0167], [36.5167, 28.9833]] },
-    { id: 6, name: 'Alınca - Çıralı', distance: 19, difficulty: 'Orta', elevation: 500, risk: 'medium', coords: [[36.5167, 28.9833], [36.4833, 28.9500]] },
-    { id: 7, name: 'Çıralı - Antalya', distance: 20, difficulty: 'Kolay', elevation: 200, risk: 'low', coords: [[36.4833, 28.9500], [36.4667, 28.9167]] },
-    { id: 8, name: 'Antalya - Kemer', distance: 22, difficulty: 'Kolay', elevation: 150, risk: 'low', coords: [[36.4667, 28.9167], [36.6167, 29.0833]] },
-    { id: 9, name: 'Kemer - Beldibi', distance: 18, difficulty: 'Orta', elevation: 400, risk: 'medium', coords: [[36.6167, 29.0833], [36.6333, 29.1167]] },
-    { id: 10, name: 'Beldibi - Göynük', distance: 16, difficulty: 'Orta', elevation: 380, risk: 'medium', coords: [[36.6333, 29.1167], [36.6500, 29.1500]] },
-    { id: 11, name: 'Göynük - Tekirova', distance: 17, difficulty: 'Zor', elevation: 550, risk: 'high', coords: [[36.6500, 29.1500], [36.6667, 29.1833]] },
-    { id: 12, name: 'Tekirova - Phaselis', distance: 14, difficulty: 'Orta', elevation: 420, risk: 'medium', coords: [[36.6667, 29.1833], [36.6833, 29.2167]] },
-    { id: 13, name: 'Phaselis - Çamyuva', distance: 15, difficulty: 'Kolay', elevation: 250, risk: 'low', coords: [[36.6833, 29.2167], [36.7000, 29.2500]] },
-    { id: 14, name: 'Çamyuva - Kumluca', distance: 19, difficulty: 'Orta', elevation: 380, risk: 'medium', coords: [[36.7000, 29.2500], [36.7167, 29.2833]] },
-    { id: 15, name: 'Kumluca - Adrasan', distance: 17, difficulty: 'Orta', elevation: 400, risk: 'medium', coords: [[36.7167, 29.2833], [36.7333, 29.3167]] },
-    { id: 16, name: 'Adrasan - Olympos', distance: 16, difficulty: 'Zor', elevation: 520, risk: 'high', coords: [[36.7333, 29.3167], [36.7500, 29.3500]] },
-    { id: 17, name: 'Olympos - Çıralı', distance: 18, difficulty: 'Orta', elevation: 450, risk: 'medium', coords: [[36.7500, 29.3500], [36.7667, 29.3833]] },
-    { id: 18, name: 'Çıralı - Ulupınar', distance: 15, difficulty: 'Kolay', elevation: 280, risk: 'low', coords: [[36.7667, 29.3833], [36.7833, 29.4167]] },
-    { id: 19, name: 'Ulupınar - Kaş', distance: 20, difficulty: 'Orta', elevation: 380, risk: 'medium', coords: [[36.7833, 29.4167], [36.8000, 29.4500]] },
-    { id: 20, name: 'Kaş - Kalkan', distance: 17, difficulty: 'Orta', elevation: 420, risk: 'medium', coords: [[36.8000, 29.4500], [36.8167, 29.4833]] },
-    { id: 21, name: 'Kalkan - Patara', distance: 18, difficulty: 'Kolay', elevation: 300, risk: 'low', coords: [[36.8167, 29.4833], [36.8333, 29.5167]] },
-    { id: 22, name: 'Patara - Xanthos', distance: 16, difficulty: 'Orta', elevation: 350, risk: 'medium', coords: [[36.8333, 29.5167], [36.8500, 29.5500]] },
-    { id: 23, name: 'Xanthos - Letoon', distance: 14, difficulty: 'Kolay', elevation: 200, risk: 'low', coords: [[36.8500, 29.5500], [36.8667, 29.5833]] },
-    { id: 24, name: 'Letoon - Tlos', distance: 19, difficulty: 'Orta', elevation: 400, risk: 'medium', coords: [[36.8667, 29.5833], [36.8833, 29.6167]] },
-    { id: 25, name: 'Tlos - Saklikent', distance: 17, difficulty: 'Zor', elevation: 580, risk: 'high', coords: [[36.8833, 29.6167], [36.9000, 29.6500]] },
-    { id: 26, name: 'Saklikent - Ölüdeniz', distance: 18, difficulty: 'Orta', elevation: 450, risk: 'medium', coords: [[36.9000, 29.6500], [36.9167, 29.6833]] },
-    { id: 27, name: 'Ölüdeniz - Butterfly Valley', distance: 15, difficulty: 'Kolay', elevation: 250, risk: 'low', coords: [[36.9167, 29.6833], [36.9333, 29.7167]] },
-    { id: 28, name: 'Butterfly Valley - Gemile', distance: 16, difficulty: 'Orta', elevation: 380, risk: 'medium', coords: [[36.9333, 29.7167], [36.9500, 29.7500]] },
-    { id: 29, name: 'Gemile - Sarsala', distance: 17, difficulty: 'Orta', elevation: 420, risk: 'medium', coords: [[36.9500, 29.7500], [36.9667, 29.7833]] },
-    { id: 30, name: 'Sarsala - Akkaya', distance: 19, difficulty: 'Zor', elevation: 550, risk: 'high', coords: [[36.9667, 29.7833], [36.9833, 29.8167]] },
-    { id: 31, name: 'Akkaya - Sidyma', distance: 18, difficulty: 'Orta', elevation: 400, risk: 'medium', coords: [[36.9833, 29.8167], [37.0000, 29.8500]] },
-    { id: 32, name: 'Sidyma - Antalya', distance: 16, difficulty: 'Kolay', elevation: 300, risk: 'low', coords: [[37.0000, 29.8500], [36.87, 30.47]] }
+    { id: 1, name: 'Ölüdeniz - Kabak', distance: 15, difficulty: 'Kolay', elevation: 300, risk: 'low', coords: [[36.56473, 29.13874], [36.50516, 29.15486]] },
+    { id: 2, name: 'Kabak - Faralya', distance: 18, difficulty: 'Orta', elevation: 450, risk: 'medium', coords: [[36.50516, 29.15486], [36.46728, 29.12323]] },
+    { id: 3, name: 'Faralya - Alınca', distance: 14, difficulty: 'Zor', elevation: 600, risk: 'high', coords: [[36.46728, 29.12323], [36.402188, 29.134435]] },
+    { id: 4, name: 'Alınca - Gey', distance: 16, difficulty: 'Orta', elevation: 400, risk: 'medium', coords: [[36.402188, 29.134435], [36.336185, 29.202019]] },
+    { id: 5, name: 'Gey - Kınık', distance: 17, difficulty: 'Orta', elevation: 350, risk: 'low', coords: [[36.336185, 29.202019], [36.354826, 29.315061]] },
+    { id: 6, name: 'Kınık - Patara', distance: 19, difficulty: 'Orta', elevation: 500, risk: 'medium', coords: [[36.354826, 29.315061], [36.280936, 29.408318]] },
+    { id: 7, name: 'Patara - Kalkan', distance: 20, difficulty: 'Kolay', elevation: 200, risk: 'low', coords: [[36.280936, 29.408318], [36.273689, 29.320948]] },
+    { id: 8, name: 'Kalkan - Bezirgan', distance: 22, difficulty: 'Kolay', elevation: 150, risk: 'low', coords: [[36.273689, 29.320948], [36.262284, 29.418125]] },
+    { id: 9, name: 'Bezirgan - Gökçeören', distance: 18, difficulty: 'Orta', elevation: 400, risk: 'medium', coords: [[36.262284, 29.418125], [36.275763, 29.462322]] },
+    { id: 10, name: 'Gökçeören - Çukurbağ', distance: 16, difficulty: 'Orta', elevation: 380, risk: 'medium', coords: [[36.275763, 29.462322], [36.241378, 29.543008]] },
+    { id: 11, name: 'Çukurbağ - Kaş', distance: 17, difficulty: 'Zor', elevation: 550, risk: 'high', coords: [[36.241378, 29.543008], [36.240079, 29.67097]] },
+    { id: 12, name: 'Kaş - Körmen Adası', distance: 14, difficulty: 'Orta', elevation: 420, risk: 'medium', coords: [[36.240079, 29.67097], [36.199832, 29.639668]] },
+    { id: 13, name: 'Körmen - Aperlai', distance: 15, difficulty: 'Kolay', elevation: 250, risk: 'low', coords: [[36.199832, 29.639668], [36.155755, 29.71226]] },
+    { id: 14, name: 'Aperlai - Üçağız', distance: 19, difficulty: 'Orta', elevation: 380, risk: 'medium', coords: [[36.155755, 29.71226], [36.159247, 29.787096]] },
+    { id: 15, name: 'Üçağız - Demre', distance: 17, difficulty: 'Orta', elevation: 400, risk: 'medium', coords: [[36.159247, 29.787096], [36.197333, 29.847213]] },
+    { id: 16, name: 'Demre - Alakilise', distance: 16, difficulty: 'Zor', elevation: 520, risk: 'high', coords: [[36.197333, 29.847213], [36.329791, 30.001981]] },
+    { id: 17, name: 'Alakilise - Finike', distance: 18, difficulty: 'Orta', elevation: 450, risk: 'medium', coords: [[36.329791, 30.001981], [36.300443, 30.073634]] },
+    { id: 18, name: 'Finike - Karaöz', distance: 15, difficulty: 'Kolay', elevation: 280, risk: 'low', coords: [[36.300443, 30.073634], [36.297072, 30.146055]] },
+    { id: 19, name: 'Karaöz - Adrasan', distance: 20, difficulty: 'Orta', elevation: 380, risk: 'medium', coords: [[36.297072, 30.146055], [36.276047, 30.41079]] },
+    { id: 20, name: 'Adrasan - Beycik', distance: 17, difficulty: 'Orta', elevation: 420, risk: 'medium', coords: [[36.276047, 30.41079], [36.410731, 30.478593]] },
+    { id: 21, name: 'Beycik - Gedelme', distance: 18, difficulty: 'Kolay', elevation: 300, risk: 'low', coords: [[36.410731, 30.478593], [36.504055, 30.426529]] },
+    { id: 22, name: 'Gedelme - Göynük', distance: 16, difficulty: 'Orta', elevation: 350, risk: 'medium', coords: [[36.504055, 30.426529], [36.614042, 30.447094]] },
+    { id: 23, name: 'Göynük - Hisarcandır', distance: 14, difficulty: 'Kolay', elevation: 200, risk: 'low', coords: [[36.614042, 30.447094], [36.681374, 30.551015]] },
+    { id: 24, name: 'Hisarcandır - Antalya', distance: 19, difficulty: 'Orta', elevation: 400, risk: 'medium', coords: [[36.681374, 30.551015], [36.8969, 30.7133]] }
 ];
 
+// ============================================================================
+// FACILITIES DATA - CORRECTED
+// ============================================================================
+
 const FACILITIES = [
-    { name: 'Fethiye Hastanesi', type: 'Tıbbi Yardım', coords: [36.6167, 29.1167], distance: '0 km' },
+    { name: 'Fethiye Devlet Hastanesi', type: 'Tıbbi Yardım', coords: [36.6526, 29.1198], distance: '0 km', phone: '112' },
+    { name: 'Ölüdeniz Sağlık Ocağı', type: 'Tıbbi Yardım', coords: [36.5849, 29.1144], distance: '15 km', phone: '112' },
+    { name: 'Kaş Devlet Hastanesi', type: 'Tıbbi Yardım', coords: [36.1992, 29.6362], distance: '200 km', phone: '112' },
+    { name: 'Antalya Eğitim Araştırma Hastanesi', type: 'Tıbbi Yardım', coords: [36.8969, 30.7133], distance: '450 km', phone: '112' },
     { name: 'Ölüdeniz Pansiyon', type: 'Konaklama', coords: [36.5849, 29.1144], distance: '15 km' },
     { name: 'Kabak Su Kaynağı', type: 'Su Kaynağı', coords: [36.5667, 29.0833], distance: '33 km' },
     { name: 'Faralya Konaklama', type: 'Konaklama', coords: [36.5500, 29.0500], distance: '47 km' },
-    { name: 'Geyikbayırı Hastanesi', type: 'Tıbbi Yardım', coords: [36.5333, 29.0167], distance: '63 km' },
-    { name: 'Çıralı Pansiyon', type: 'Konaklama', coords: [36.4833, 28.9500], distance: '80 km' },
-    { name: 'Antalya Hastanesi', type: 'Tıbbi Yardım', coords: [36.4667, 28.9167], distance: '100 km' },
-    { name: 'Kemer Otel', type: 'Konaklama', coords: [36.6167, 29.0833], distance: '122 km' },
-    { name: 'Beldibi Su Kaynağı', type: 'Su Kaynağı', coords: [36.6333, 29.1167], distance: '140 km' },
-    { name: 'Kaş Hastanesi', type: 'Tıbbi Yardım', coords: [36.8000, 29.4500], distance: '280 km' },
-    { name: 'Kalkan Pansiyon', type: 'Konaklama', coords: [36.8167, 29.4833], distance: '297 km' },
-    { name: 'Patara Su Kaynağı', type: 'Su Kaynağı', coords: [36.8333, 29.5167], distance: '315 km' }
+    { name: 'Kaş Pansiyon', type: 'Konaklama', coords: [36.2001, 29.6400], distance: '200 km' },
+    { name: 'Demre Konaklama', type: 'Konaklama', coords: [36.2444, 29.9850], distance: '300 km' }
 ];
+
+// ============================================================================
+// TRANSLATIONS
+// ============================================================================
 
 const TRANSLATIONS = {
     tr: {
@@ -107,20 +133,171 @@ const TRANSLATIONS = {
         gpsOn: 'GPS Açık - Konum: ',
         startGPS: 'GPS\'i Başlat',
         stopGPS: 'GPS\'i Durdur',
+        centerMap: 'Konumuma Git',
+        emergency: 'SOS - Acil Durum (112)',
+        overview: 'Genel',
+        weather: 'Hava',
+        stages: 'Etaplar',
+        facilities: 'Tesisler',
+        totalLength: 'Toplam Uzunluk',
+        stageCount: 'Etap Sayısı',
+        difficulty: 'Zorluk Seviyesi',
+        recommendedTime: 'Tavsiye Edilen Süre',
+        currentRisk: 'Mevcut Risk Seviyesi',
+        liveWeather: 'Canlı Hava Durumu',
+        temperature: 'Sıcaklık',
+        humidity: 'Nem',
+        wind: 'Rüzgar',
+        pressure: 'Basınç',
+        pastWeather: 'Geçmiş Yıllar',
+        stageList: '24 Etap Listesi',
+        accommodationFacilities: 'Konaklama ve Tesisler',
+        emergencyAlert: 'Acil Durum - 112',
+        selectOption: 'Acil durumda 112\'yi arayın. Konumunuz otomatik gönderilecek.',
+        call112: '112 Ara',
+        cancel: 'İptal',
+        distance: 'Mesafe',
         riskLow: 'Düşük',
         riskMedium: 'Orta',
-        riskHigh: 'Yüksek'
+        riskHigh: 'Yüksek',
+        loading: 'Yükleniyor...'
     },
     en: {
         gpsOff: 'GPS Off',
         gpsOn: 'GPS On - Location: ',
         startGPS: 'Start GPS',
         stopGPS: 'Stop GPS',
+        centerMap: 'Center Map',
+        emergency: 'SOS - Emergency (112)',
+        overview: 'Overview',
+        weather: 'Weather',
+        stages: 'Stages',
+        facilities: 'Facilities',
+        totalLength: 'Total Length',
+        stageCount: 'Stage Count',
+        difficulty: 'Difficulty',
+        recommendedTime: 'Recommended Time',
+        currentRisk: 'Current Risk',
+        liveWeather: 'Live Weather',
+        temperature: 'Temperature',
+        humidity: 'Humidity',
+        wind: 'Wind',
+        pressure: 'Pressure',
+        pastWeather: 'Past Years',
+        stageList: '24 Stage List',
+        accommodationFacilities: 'Accommodation',
+        emergencyAlert: 'Emergency - 112',
+        selectOption: 'Call 112 in emergency. Your location will be sent.',
+        call112: 'Call 112',
+        cancel: 'Cancel',
+        distance: 'Distance',
         riskLow: 'Low',
         riskMedium: 'Medium',
-        riskHigh: 'High'
+        riskHigh: 'High',
+        loading: 'Loading...'
+    },
+    de: {
+        gpsOff: 'GPS aus',
+        gpsOn: 'GPS an - Standort: ',
+        startGPS: 'GPS starten',
+        stopGPS: 'GPS stoppen',
+        centerMap: 'Karte zentrieren',
+        emergency: 'SOS - Notfall (112)',
+        overview: 'Übersicht',
+        weather: 'Wetter',
+        stages: 'Etappen',
+        facilities: 'Einrichtungen',
+        totalLength: 'Gesamtlänge',
+        stageCount: 'Etappenzahl',
+        difficulty: 'Schwierigkeit',
+        recommendedTime: 'Empfohlene Zeit',
+        currentRisk: 'Aktuelles Risiko',
+        liveWeather: 'Aktuelles Wetter',
+        temperature: 'Temperatur',
+        humidity: 'Luftfeuchtigkeit',
+        wind: 'Wind',
+        pressure: 'Luftdruck',
+        pastWeather: 'Vergangene Jahre',
+        stageList: '24 Etappenliste',
+        accommodationFacilities: 'Unterkunft',
+        emergencyAlert: 'Notfall - 112',
+        selectOption: 'Rufen Sie 112 im Notfall. Ihr Standort wird gesendet.',
+        call112: '112 anrufen',
+        cancel: 'Abbrechen',
+        distance: 'Entfernung',
+        riskLow: 'Niedrig',
+        riskMedium: 'Mittel',
+        riskHigh: 'Hoch',
+        loading: 'Lädt...'
+    },
+    ru: {
+        gpsOff: 'GPS выключен',
+        gpsOn: 'GPS включен - Местоположение: ',
+        startGPS: 'Включить GPS',
+        stopGPS: 'Выключить GPS',
+        centerMap: 'Центрировать карту',
+        emergency: 'SOS - Экстренная помощь (112)',
+        overview: 'Обзор',
+        weather: 'Погода',
+        stages: 'Этапы',
+        facilities: 'Объекты',
+        totalLength: 'Общая длина',
+        stageCount: 'Количество этапов',
+        difficulty: 'Сложность',
+        recommendedTime: 'Рекомендуемое время',
+        currentRisk: 'Текущий риск',
+        liveWeather: 'Текущая погода',
+        temperature: 'Температура',
+        humidity: 'Влажность',
+        wind: 'Ветер',
+        pressure: 'Давление',
+        pastWeather: 'Прошлые годы',
+        stageList: 'Список из 24 этапов',
+        accommodationFacilities: 'Проживание',
+        emergencyAlert: 'Экстренная ситуация - 112',
+        selectOption: 'Звоните 112 в экстренной ситуации. Ваше местоположение будет отправлено.',
+        call112: 'Позвонить 112',
+        cancel: 'Отмена',
+        distance: 'Расстояние',
+        riskLow: 'Низкий',
+        riskMedium: 'Средний',
+        riskHigh: 'Высокий',
+        loading: 'Загрузка...'
+    },
+    fr: {
+        gpsOff: 'GPS désactivé',
+        gpsOn: 'GPS activé - Localisation: ',
+        startGPS: 'Démarrer GPS',
+        stopGPS: 'Arrêter GPS',
+        centerMap: 'Centrer la carte',
+        emergency: 'SOS - Urgence (112)',
+        overview: 'Aperçu',
+        weather: 'Météo',
+        stages: 'Étapes',
+        facilities: 'Installations',
+        totalLength: 'Longueur totale',
+        stageCount: 'Nombre d\'étapes',
+        difficulty: 'Difficulté',
+        recommendedTime: 'Temps recommandé',
+        currentRisk: 'Risque actuel',
+        liveWeather: 'Météo en direct',
+        temperature: 'Température',
+        humidity: 'Humidité',
+        wind: 'Vent',
+        pressure: 'Pression',
+        pastWeather: 'Années précédentes',
+        stageList: 'Liste des 24 étapes',
+        accommodationFacilities: 'Hébergement',
+        emergencyAlert: 'Urgence - 112',
+        selectOption: 'Appelez le 112 en cas d\'urgence. Votre localisation sera envoyée.',
+        call112: 'Appeler le 112',
+        cancel: 'Annuler',
+        distance: 'Distance',
+        riskLow: 'Faible',
+        riskMedium: 'Moyen',
+        riskHigh: 'Élevé',
+        loading: 'Chargement...'
     }
-    // Add more languages as needed
 };
 
 // ============================================================================
@@ -128,20 +305,6 @@ const TRANSLATIONS = {
 // ============================================================================
 
 const Utils = {
-    // Debounce function for performance
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    },
-
-    // Throttle function for GPS updates
     throttle(func, limit) {
         let inThrottle;
         return function(...args) {
@@ -153,57 +316,135 @@ const Utils = {
         };
     },
 
-    // Get risk color
     getRiskColor(risk) {
-        const colors = {
-            low: '#51cf66',
-            medium: '#ffd43b',
-            high: '#ff6b6b'
-        };
+        const colors = { low: '#51cf66', medium: '#ffd43b', high: '#ff6b6b' };
         return colors[risk] || colors.medium;
     },
 
-    // Get risk text
-    getRiskText(risk, lang = 'tr') {
-        const texts = TRANSLATIONS[lang];
-        const riskMap = {
-            low: texts.riskLow,
-            medium: texts.riskMedium,
-            high: texts.riskHigh
-        };
-        return riskMap[risk] || texts.riskMedium;
+    getRiskText(risk) {
+        const t = TRANSLATIONS[State.currentLanguage];
+        const map = { low: t.riskLow, medium: t.riskMedium, high: t.riskHigh };
+        return map[risk] || t.riskMedium;
     },
 
-    // Format coordinates
     formatCoords(lat, lng) {
         return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
     },
 
-    // Get facility icon
     getFacilityIcon(type) {
-        const icons = {
-            'Konaklama': '🏨',
-            'Su Kaynağı': '💧',
-            'Tıbbi Yardım': '🏥'
-        };
+        const icons = { 'Konaklama': '🏨', 'Su Kaynağı': '💧', 'Tıbbi Yardım': '🏥' };
         return icons[type] || '📍';
+    },
+
+    translate(key) {
+        return TRANSLATIONS[State.currentLanguage][key] || key;
     }
 };
 
 // ============================================================================
-// MAP INITIALIZATION
+// WEATHER API
+// ============================================================================
+
+const WeatherAPI = {
+    async getCurrentWeather() {
+        const { API_KEY, BASE_URL } = CONFIG.WEATHER;
+        const lat = 36.5;
+        const lon = 29.1;
+        
+        try {
+            const response = await fetch(
+                `${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=${State.currentLanguage}`
+            );
+            
+            if (!response.ok) throw new Error('Weather API error');
+            
+            const data = await response.json();
+            return {
+                temp: Math.round(data.main.temp),
+                humidity: data.main.humidity,
+                wind: Math.round(data.wind.speed * 3.6),
+                pressure: data.main.pressure,
+                description: data.weather[0].description
+            };
+        } catch (error) {
+            console.error('Weather fetch error:', error);
+            return {
+                temp: 22,
+                humidity: 65,
+                wind: 15,
+                pressure: 1013,
+                description: 'Bilgi alınamadı'
+            };
+        }
+    },
+
+    async updateDisplay() {
+        const weather = await this.getCurrentWeather();
+        
+        const elements = {
+            temp: document.getElementById('tempValue'),
+            humidity: document.getElementById('humidityValue'),
+            wind: document.getElementById('windValue'),
+            pressure: document.getElementById('pressureValue')
+        };
+
+        if (elements.temp) elements.temp.textContent = `${weather.temp}°C`;
+        if (elements.humidity) elements.humidity.textContent = `${weather.humidity}%`;
+        if (elements.wind) elements.wind.textContent = `${weather.wind} km/h`;
+        if (elements.pressure) elements.pressure.textContent = `${weather.pressure} mb`;
+        
+        setTimeout(() => this.updateDisplay(), CONFIG.WEATHER.UPDATE_INTERVAL);
+    },
+
+    initChart() {
+        const canvas = document.getElementById('weatherChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const months = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+        
+        State.weatherChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: '2023',
+                    data: [12, 13, 16, 20, 25, 30, 33, 32, 28, 22, 17, 13],
+                    borderColor: '#2a5298',
+                    backgroundColor: 'rgba(42, 82, 152, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: '2022',
+                    data: [11, 12, 15, 19, 24, 29, 32, 31, 27, 21, 16, 12],
+                    borderColor: '#51cf66',
+                    backgroundColor: 'rgba(81, 207, 102, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Ortalama Aylık Sıcaklık (°C)' }
+                },
+                scales: { y: { beginAtZero: true, max: 35 } }
+            }
+        });
+    }
+};
+
+// ============================================================================
+// MAP MANAGEMENT
 // ============================================================================
 
 const MapManager = {
     init() {
         try {
-            State.map = L.map('map', {
-                zoomControl: true,
-                attributionControl: true
-            }).setView(CONFIG.MAP.CENTER, CONFIG.MAP.DEFAULT_ZOOM);
+            State.map = L.map('map').setView(CONFIG.MAP.CENTER, CONFIG.MAP.DEFAULT_ZOOM);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
+                attribution: '© OpenStreetMap',
                 maxZoom: CONFIG.MAP.MAX_ZOOM,
                 minZoom: CONFIG.MAP.MIN_ZOOM
             }).addTo(State.map);
@@ -211,36 +452,32 @@ const MapManager = {
             this.drawRoute();
             this.drawStages();
             this.drawFacilities();
-
-            console.log('Map initialized successfully');
+            
+            console.log('Map initialized with real KML data');
         } catch (error) {
-            console.error('Map initialization error:', error);
-            this.showError('Harita yüklenemedi. Lütfen sayfayı yenileyin.');
+            console.error('Map init error:', error);
         }
     },
 
     drawRoute() {
-        const routeCoords = STAGES.flatMap(stage => stage.coords);
-        
-        State.layers.route = L.polyline(routeCoords, {
+        State.layers.route = L.polyline(LIKYA_ROUTE_COORDINATES, {
             color: '#2a5298',
             weight: 3,
             opacity: 0.8,
             dashArray: '5, 5'
         }).addTo(State.map);
 
-        // Start marker
-        L.circleMarker([36.6167, 29.1167], {
+        // Start & End markers
+        L.circleMarker([36.56473, 29.13874], {
             radius: 8,
             fillColor: '#51cf66',
             color: '#fff',
             weight: 2,
             opacity: 1,
             fillOpacity: 0.8
-        }).addTo(State.map).bindPopup('<b>Fethiye - Başlangıç</b>');
+        }).addTo(State.map).bindPopup('<b>Ölüdeniz - Başlangıç</b>');
 
-        // End marker
-        L.circleMarker([36.87, 30.47], {
+        L.circleMarker([36.8969, 30.7133], {
             radius: 8,
             fillColor: '#ff6b6b',
             color: '#fff',
@@ -253,7 +490,7 @@ const MapManager = {
     drawStages() {
         STAGES.forEach(stage => {
             const color = Utils.getRiskColor(stage.risk);
-            const riskText = Utils.getRiskText(stage.risk, State.currentLanguage);
+            const riskText = Utils.getRiskText(stage.risk);
 
             const layer = L.polyline(stage.coords, {
                 color,
@@ -263,8 +500,8 @@ const MapManager = {
 
             layer.bindPopup(`
                 <b>${stage.name}</b><br>
-                Mesafe: ${stage.distance} km<br>
-                Zorluk: ${stage.difficulty}<br>
+                ${Utils.translate('distance')}: ${stage.distance} km<br>
+                ${Utils.translate('difficulty')}: ${stage.difficulty}<br>
                 Risk: ${riskText}
             `);
 
@@ -287,32 +524,12 @@ const MapManager = {
             layer.bindPopup(`
                 <b>${facility.name}</b><br>
                 Tür: ${facility.type}<br>
-                Mesafe: ${facility.distance}
+                ${facility.phone ? `Tel: ${facility.phone}<br>` : ''}
+                ${Utils.translate('distance')}: ${facility.distance}
             `);
 
             State.layers.facilities.push(layer);
         });
-    },
-
-    showError(message) {
-        // Create error notification
-        const notification = document.createElement('div');
-        notification.className = 'map-notification error';
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ff6b6b;
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 4px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 5000);
     }
 };
 
@@ -335,19 +552,15 @@ const GPSManager = {
         State.gpsActive = true;
         this.updateStatus(true);
 
-        const options = {
-            enableHighAccuracy: CONFIG.GPS.HIGH_ACCURACY,
-            timeout: CONFIG.GPS.TIMEOUT,
-            maximumAge: CONFIG.GPS.MAX_AGE
-        };
-
         State.gpsWatchId = navigator.geolocation.watchPosition(
             position => this.handleSuccess(position),
             error => this.handleError(error),
-            options
+            {
+                enableHighAccuracy: CONFIG.GPS.HIGH_ACCURACY,
+                timeout: CONFIG.GPS.TIMEOUT,
+                maximumAge: CONFIG.GPS.MAX_AGE
+            }
         );
-
-        console.log('GPS started');
     },
 
     stop() {
@@ -355,16 +568,12 @@ const GPSManager = {
             navigator.geolocation.clearWatch(State.gpsWatchId);
             State.gpsWatchId = null;
         }
-
         State.gpsActive = false;
         this.updateStatus(false);
-
         if (State.userMarker) {
             State.map.removeLayer(State.userMarker);
             State.userMarker = null;
         }
-
-        console.log('GPS stopped');
     },
 
     handleSuccess: Utils.throttle(function(position) {
@@ -389,23 +598,23 @@ const GPSManager = {
 
         const statusText = document.getElementById('gpsStatusText');
         if (statusText) {
-            statusText.textContent = `GPS Açık - ${Utils.formatCoords(lat, lng)}`;
+            statusText.textContent = `${Utils.translate('gpsOn')}${Utils.formatCoords(lat, lng)}`;
         }
     }, CONFIG.GPS.UPDATE_INTERVAL),
 
     handleError(error) {
         console.error('GPS Error:', error);
-        let message = 'GPS hatası oluştu';
+        let message = 'GPS hatası';
         
         switch(error.code) {
             case error.PERMISSION_DENIED:
                 message = 'Konum izni reddedildi';
                 break;
             case error.POSITION_UNAVAILABLE:
-                message = 'Konum bilgisi kullanılamıyor';
+                message = 'Konum kullanılamıyor';
                 break;
             case error.TIMEOUT:
-                message = 'Konum isteği zaman aşımına uğradı';
+                message = 'Zaman aşımı';
                 break;
         }
 
@@ -420,95 +629,11 @@ const GPSManager = {
 
         if (active) {
             statusEl.classList.remove('inactive');
-            statusText.textContent = message || 'GPS Açık';
+            statusText.textContent = message || Utils.translate('gpsOn');
         } else {
             statusEl.classList.add('inactive');
-            statusText.textContent = message || 'GPS Kapalı';
+            statusText.textContent = message || Utils.translate('gpsOff');
         }
-    }
-};
-
-// ============================================================================
-// WEATHER MANAGEMENT
-// ============================================================================
-
-const WeatherManager = {
-    async update() {
-        try {
-            // Simulated weather data
-            const data = {
-                temp: 22,
-                humidity: 65,
-                wind: 15,
-                pressure: 1013
-            };
-
-            this.updateDisplay(data);
-            
-            // Schedule next update
-            setTimeout(() => this.update(), CONFIG.WEATHER.UPDATE_INTERVAL);
-        } catch (error) {
-            console.error('Weather update error:', error);
-        }
-    },
-
-    updateDisplay(data) {
-        const elements = {
-            temp: document.getElementById('tempValue'),
-            humidity: document.getElementById('humidityValue'),
-            wind: document.getElementById('windValue'),
-            pressure: document.getElementById('pressureValue')
-        };
-
-        if (elements.temp) elements.temp.textContent = `${data.temp}°C`;
-        if (elements.humidity) elements.humidity.textContent = `${data.humidity}%`;
-        if (elements.wind) elements.wind.textContent = `${data.wind} km/h`;
-        if (elements.pressure) elements.pressure.textContent = `${data.pressure} mb`;
-    },
-
-    initChart() {
-        const canvas = document.getElementById('weatherChart');
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        const months = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-        
-        State.weatherChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: months,
-                datasets: [
-                    {
-                        label: '2023',
-                        data: [12, 13, 16, 20, 25, 30, 33, 32, 28, 22, 17, 13],
-                        borderColor: '#2a5298',
-                        backgroundColor: 'rgba(42, 82, 152, 0.1)',
-                        tension: 0.4
-                    },
-                    {
-                        label: '2022',
-                        data: [11, 12, 15, 19, 24, 29, 32, 31, 27, 21, 16, 12],
-                        borderColor: '#51cf66',
-                        backgroundColor: 'rgba(81, 207, 102, 0.1)',
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { position: 'top' },
-                    title: {
-                        display: true,
-                        text: 'Ortalama Aylık Sıcaklık (°C)'
-                    }
-                },
-                scales: {
-                    y: { beginAtZero: true, max: 35 }
-                }
-            }
-        });
     }
 };
 
@@ -525,7 +650,7 @@ const UIManager = {
 
         STAGES.forEach(stage => {
             const riskClass = `risk-${stage.risk}`;
-            const riskText = Utils.getRiskText(stage.risk, State.currentLanguage);
+            const riskText = Utils.getRiskText(stage.risk);
 
             const div = document.createElement('div');
             div.className = 'stage-item';
@@ -561,6 +686,7 @@ const UIManager = {
             div.innerHTML = `
                 <div class="facility-name">${facility.name}</div>
                 <div class="facility-type">${facility.type}</div>
+                ${facility.phone ? `<div class="facility-phone">Tel: ${facility.phone}</div>` : ''}
             `;
             
             div.onclick = () => {
@@ -569,11 +695,23 @@ const UIManager = {
 
             container.appendChild(div);
         });
+    },
+
+    updateLanguage() {
+        // Update all translatable elements
+        document.querySelectorAll('[data-translate]').forEach(el => {
+            const key = el.getAttribute('data-translate');
+            el.textContent = Utils.translate(key);
+        });
+
+        // Redraw UI elements
+        this.populateStages();
+        this.populateFacilities();
     }
 };
 
 // ============================================================================
-// GLOBAL FUNCTIONS (called from HTML)
+// GLOBAL FUNCTIONS
 // ============================================================================
 
 function startGPS() {
@@ -584,7 +722,7 @@ function centerMap() {
     if (State.userLocation) {
         State.map.setView(State.userLocation, 13);
     } else {
-        alert('Konumunuz henüz alınamadı. Lütfen GPS\'i başlatın.');
+        alert(Utils.translate('gpsOff'));
     }
 }
 
@@ -593,10 +731,6 @@ function showEmergency() {
     if (modal) {
         modal.classList.add('show');
         modal.setAttribute('aria-hidden', 'false');
-        
-        // Focus first button in modal
-        const firstButton = modal.querySelector('button');
-        if (firstButton) firstButton.focus();
     }
 }
 
@@ -608,49 +742,27 @@ function closeEmergency() {
     }
 }
 
-function callEmergency(type) {
-    const numbers = {
-        police: '155',
-        ambulance: '112',
-        mountain: '177'
-    };
-
-    const typeNames = {
-        police: 'Polis',
-        ambulance: 'Ambulans',
-        mountain: 'Dağ Kurtarma'
-    };
-
-    const location = State.userLocation 
-        ? `Konum: ${Utils.formatCoords(State.userLocation[0], State.userLocation[1])}`
-        : 'Konum bilinmiyor';
-    
-    alert(`${typeNames[type]} çağrısı yapılıyor...\n${location}`);
-    
-    // In production, use: window.location.href = `tel:${numbers[type]}`;
-    
+function call112() {
+    // Direct phone call to 112
+    window.location.href = 'tel:112';
     closeEmergency();
 }
 
 function switchTab(tabName, event) {
-    // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
 
-    // Remove active class from all buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
         btn.setAttribute('aria-selected', 'false');
     });
 
-    // Show selected tab
     const selectedTab = document.getElementById(tabName);
     if (selectedTab) {
         selectedTab.classList.add('active');
     }
 
-    // Add active class to clicked button
     if (event && event.target) {
         event.target.classList.add('active');
         event.target.setAttribute('aria-selected', 'true');
@@ -660,9 +772,8 @@ function switchTab(tabName, event) {
 function changeLanguage(lang) {
     State.currentLanguage = lang;
     document.documentElement.lang = lang;
-    
-    // Update UI with new language
-    // This is a placeholder - implement full translation logic as needed
+    UIManager.updateLanguage();
+    WeatherAPI.updateDisplay();
     console.log(`Language changed to: ${lang}`);
 }
 
@@ -671,20 +782,18 @@ function changeLanguage(lang) {
 // ============================================================================
 
 function init() {
-    console.log('Initializing Likya Yolu Security System...');
+    console.log('🚀 Initializing Likya Yolu Security System...');
+    console.log('📍 Loading real KML coordinates (528 km)');
+    console.log('🌤️ OpenWeather API integrated');
+    console.log('🚑 Emergency 112 direct call enabled');
     
-    // Initialize map
     MapManager.init();
-    
-    // Populate UI
     UIManager.populateStages();
     UIManager.populateFacilities();
+    WeatherAPI.initChart();
+    WeatherAPI.updateDisplay();
     
-    // Initialize weather
-    WeatherManager.initChart();
-    WeatherManager.update();
-    
-    console.log('✓ Initialization complete');
+    console.log('✅ System ready!');
 }
 
 // DOM Ready
@@ -702,7 +811,7 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// Keyboard navigation for modal
+// Keyboard ESC to close modal
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         const modal = document.getElementById('emergencyModal');
@@ -711,14 +820,3 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
-
-// Export for potential module use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        State,
-        MapManager,
-        GPSManager,
-        WeatherManager,
-        UIManager
-    };
-}

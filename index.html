@@ -3,21 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Likya Yolu güvenlik ve rota optimizasyonu sistemi. Yapay zeka destekli risk analizi, canlı hava durumu ve GPS takip.">
-    <meta name="keywords" content="Likya Yolu, trekking, hiking, güvenlik, rota, GPS, hava durumu">
+    <meta name="description" content="Likya Yolu güvenlik ve rota optimizasyonu sistemi. YZ destekli risk analizi, gerçek zamanlı hava durumu ve GPS takip.">
+    <meta name="keywords" content="Likya Yolu, trekking, hiking, güvenlik, rota, GPS, hava durumu, 112 acil">
     <meta name="author" content="Likya Güvenlik Sistemi">
     <meta name="theme-color" content="#2a5298">
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="Likya Yolu Güvenlik Sistemi">
-    <meta property="og:description" content="YZ destekli güvenlik ve rota optimizasyonu">
-    <meta property="og:type" content="website">
+    <title>Likya Yolu - Güvenlik ve Rota Sistemi</title>
     
-    <title>Likya Yolu - Güvenlik ve Rota Optimizasyonu</title>
-    
-    <!-- Preconnect for performance -->
+    <!-- Preconnect -->
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://api.openweathermap.org">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -26,16 +22,15 @@
     
     <style>
         :root {
-            --primary-color: #2a5298;
-            --secondary-color: #1e3c72;
-            --accent-color: #ff6b6b;
-            --success-color: #51cf66;
-            --warning-color: #ffd43b;
+            --primary: #2a5298;
+            --secondary: #1e3c72;
+            --accent: #ff6b6b;
+            --success: #51cf66;
+            --warning: #ffd43b;
             --text-dark: #333;
             --text-light: #666;
             --bg-light: #f8f9fa;
-            --border-color: #dee2e6;
-            --transition: all 0.3s ease;
+            --border: #dee2e6;
         }
 
         * {
@@ -49,12 +44,10 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: var(--text-dark);
-            overflow-x: hidden;
         }
 
-        /* Navigation */
         .navbar-custom {
-            background: linear-gradient(90deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             padding: 1rem 0;
             position: sticky;
@@ -72,11 +65,9 @@
         }
 
         .navbar-brand i {
-            color: var(--accent-color);
-            font-size: 1.8rem;
+            color: var(--accent);
         }
 
-        /* Main Layout */
         .container-main {
             display: grid;
             grid-template-columns: 350px 1fr;
@@ -84,7 +75,6 @@
             gap: 0;
         }
 
-        /* Sidebar */
         .sidebar {
             background: white;
             overflow-y: auto;
@@ -96,16 +86,11 @@
             width: 8px;
         }
 
-        .sidebar::-webkit-scrollbar-track {
-            background: var(--bg-light);
-        }
-
         .sidebar::-webkit-scrollbar-thumb {
-            background: var(--primary-color);
+            background: var(--primary);
             border-radius: 4px;
         }
 
-        /* Map */
         .map-container {
             position: relative;
         }
@@ -115,23 +100,22 @@
             height: 100%;
         }
 
-        /* Components */
         .section-title {
             font-size: 1.2rem;
             font-weight: 700;
-            color: var(--secondary-color);
+            color: var(--secondary);
             margin: 1.5rem 0 1rem 0;
             padding-bottom: 0.5rem;
-            border-bottom: 3px solid var(--primary-color);
+            border-bottom: 3px solid var(--primary);
         }
 
         .info-card {
             background: var(--bg-light);
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid var(--primary);
             padding: 1rem;
             margin-bottom: 1rem;
             border-radius: 4px;
-            transition: var(--transition);
+            transition: all 0.3s ease;
         }
 
         .info-card:hover {
@@ -140,10 +124,9 @@
         }
 
         .info-card h5 {
-            color: var(--secondary-color);
+            color: var(--secondary);
             font-weight: 700;
             margin-bottom: 0.5rem;
-            font-size: 1rem;
         }
 
         .info-card p {
@@ -152,7 +135,6 @@
             margin: 0;
         }
 
-        /* Risk Badges */
         .risk-badge {
             display: inline-block;
             padding: 0.25rem 0.75rem;
@@ -162,22 +144,10 @@
             margin-top: 0.5rem;
         }
 
-        .risk-low {
-            background: #d4edda;
-            color: #155724;
-        }
+        .risk-low { background: #d4edda; color: #155724; }
+        .risk-medium { background: #fff3cd; color: #856404; }
+        .risk-high { background: #f8d7da; color: #721c24; }
 
-        .risk-medium {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .risk-high {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        /* Weather Grid */
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -189,9 +159,9 @@
             background: white;
             padding: 0.75rem;
             border-radius: 4px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
             text-align: center;
-            transition: var(--transition);
+            transition: all 0.3s ease;
         }
 
         .weather-item:hover {
@@ -202,7 +172,7 @@
         .weather-item .value {
             font-size: 1.2rem;
             font-weight: 700;
-            color: var(--primary-color);
+            color: var(--primary);
         }
 
         .weather-item .label {
@@ -211,15 +181,14 @@
             margin-top: 0.25rem;
         }
 
-        /* Buttons */
         .btn-custom {
-            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
             border: none;
             color: white;
             padding: 0.75rem 1.5rem;
             border-radius: 4px;
             font-weight: 700;
-            transition: var(--transition);
+            transition: all 0.3s ease;
             margin-bottom: 0.5rem;
             width: 100%;
             cursor: pointer;
@@ -236,7 +205,14 @@
         }
 
         .btn-emergency {
-            background: linear-gradient(90deg, var(--accent-color) 0%, #ee5a6f 100%);
+            background: linear-gradient(90deg, var(--accent) 0%, #ee5a6f 100%);
+            font-size: 1.1rem;
+            animation: pulse-emergency 2s infinite;
+        }
+
+        @keyframes pulse-emergency {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
         }
 
         .btn-emergency:hover {
@@ -244,20 +220,14 @@
         }
 
         .btn-gps {
-            background: linear-gradient(90deg, var(--success-color) 0%, #37b24d 100%);
+            background: linear-gradient(90deg, var(--success) 0%, #37b24d 100%);
         }
 
-        .btn-gps:hover {
-            box-shadow: 0 4px 12px rgba(81, 207, 102, 0.4);
-        }
-
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 0.5rem;
             margin-bottom: 1rem;
-            border-bottom: 2px solid var(--border-color);
-            overflow-x: auto;
+            border-bottom: 2px solid var(--border);
         }
 
         .tab-btn {
@@ -268,14 +238,12 @@
             color: var(--text-light);
             font-weight: 700;
             border-bottom: 3px solid transparent;
-            transition: var(--transition);
-            white-space: nowrap;
+            transition: all 0.3s ease;
         }
 
-        .tab-btn.active,
-        .tab-btn:hover {
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
         }
 
         .tab-content {
@@ -292,32 +260,31 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* GPS Status */
         .gps-status {
             background: var(--bg-light);
             padding: 1rem;
             border-radius: 4px;
             margin-bottom: 1rem;
-            border-left: 4px solid var(--success-color);
+            border-left: 4px solid var(--success);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
         .gps-status.inactive {
-            border-left-color: var(--accent-color);
+            border-left-color: var(--accent);
         }
 
         .status-indicator {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background: var(--success-color);
+            background: var(--success);
             animation: pulse 2s infinite;
         }
 
         .gps-status.inactive .status-indicator {
-            background: var(--accent-color);
+            background: var(--accent);
             animation: none;
         }
 
@@ -326,15 +293,14 @@
             50% { opacity: 0.5; }
         }
 
-        /* Stage Items */
         .stage-item {
             background: white;
             padding: 0.75rem;
             margin-bottom: 0.5rem;
             border-radius: 4px;
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid var(--primary);
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s ease;
         }
 
         .stage-item:hover {
@@ -344,8 +310,7 @@
 
         .stage-name {
             font-weight: 700;
-            color: var(--secondary-color);
-            font-size: 0.95rem;
+            color: var(--secondary);
         }
 
         .stage-info {
@@ -354,15 +319,14 @@
             margin-top: 0.25rem;
         }
 
-        /* Facility Items */
         .facility-item {
             background: white;
             padding: 0.75rem;
             margin-bottom: 0.5rem;
             border-radius: 4px;
-            border-top: 3px solid var(--primary-color);
+            border-top: 3px solid var(--primary);
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s ease;
         }
 
         .facility-item:hover {
@@ -372,26 +336,24 @@
 
         .facility-name {
             font-weight: 700;
-            color: var(--secondary-color);
+            color: var(--secondary);
         }
 
-        .facility-type {
+        .facility-type, .facility-phone {
             font-size: 0.8rem;
             color: var(--text-light);
             margin-top: 0.25rem;
         }
 
-        /* Language Selector */
         .language-selector select {
             padding: 0.5rem 1rem;
             border-radius: 4px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
             background: white;
             cursor: pointer;
             font-weight: 600;
         }
 
-        /* Modal */
         .modal-custom {
             display: none;
             position: fixed;
@@ -400,7 +362,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.6);
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(5px);
@@ -414,10 +376,10 @@
         .modal-content-custom {
             background: white;
             padding: 2rem;
-            border-radius: 8px;
-            max-width: 500px;
+            border-radius: 12px;
+            max-width: 400px;
             width: 90%;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             animation: slideUp 0.3s ease;
         }
 
@@ -427,43 +389,26 @@
         }
 
         .modal-content-custom h3 {
-            color: var(--accent-color);
+            color: var(--accent);
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 1.5rem;
         }
 
-        /* Chart Container */
         .chart-container {
             background: white;
             padding: 1rem;
             border-radius: 4px;
             margin-bottom: 1rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
         }
 
         .chart-container canvas {
             max-height: 200px;
         }
 
-        /* Loading */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid var(--bg-light);
-            border-top: 3px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .container-main {
                 grid-template-columns: 1fr;
@@ -479,26 +424,11 @@
                 min-height: 300px;
             }
 
-            .navbar-brand {
-                font-size: 1.2rem;
-            }
-
             .weather-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        @media (max-width: 480px) {
-            .tabs {
-                font-size: 0.85rem;
-            }
-
-            .tab-btn {
-                padding: 0.5rem 0.75rem;
-            }
-        }
-
-        /* Accessibility */
         .visually-hidden {
             position: absolute;
             width: 1px;
@@ -507,31 +437,22 @@
             margin: -1px;
             overflow: hidden;
             clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
             border-width: 0;
-        }
-
-        /* Focus States */
-        *:focus-visible {
-            outline: 2px solid var(--primary-color);
-            outline-offset: 2px;
         }
     </style>
 </head>
 <body>
-    <!-- Skip to main content for accessibility -->
     <a href="#main-content" class="visually-hidden">Ana içeriğe geç</a>
 
-    <!-- Navigation -->
-    <nav class="navbar-custom" role="navigation" aria-label="Ana navigasyon">
+    <!-- Navbar -->
+    <nav class="navbar-custom" role="navigation">
         <div class="container-fluid">
             <h1 class="navbar-brand">
-                <i class="fas fa-mountain" aria-hidden="true"></i>
+                <i class="fas fa-mountain"></i>
                 <span>Likya Yolu Güvenlik Sistemi</span>
             </h1>
             <div class="language-selector">
-                <label for="languageSelect" class="visually-hidden">Dil seçin</label>
-                <select id="languageSelect" onchange="changeLanguage(this.value)" aria-label="Dil seçimi">
+                <select id="languageSelect" onchange="changeLanguage(this.value)">
                     <option value="tr">🇹🇷 Türkçe</option>
                     <option value="en">🇬🇧 English</option>
                     <option value="de">🇩🇪 Deutsch</option>
@@ -545,98 +466,95 @@
     <!-- Main Content -->
     <main id="main-content" class="container-main">
         <!-- Sidebar -->
-        <aside class="sidebar" role="complementary" aria-label="Bilgi paneli">
+        <aside class="sidebar" role="complementary">
             <!-- GPS Status -->
-            <div class="gps-status inactive" id="gpsStatus" role="status" aria-live="polite">
-                <span class="status-indicator" aria-hidden="true"></span>
+            <div class="gps-status inactive" id="gpsStatus" role="status">
+                <span class="status-indicator"></span>
                 <span id="gpsStatusText">GPS Kapalı</span>
             </div>
 
             <!-- Action Buttons -->
-            <button class="btn-custom btn-gps" onclick="startGPS()" aria-label="GPS'i başlat">
-                <i class="fas fa-location-dot" aria-hidden="true"></i>
-                <span>GPS'i Başlat</span>
+            <button class="btn-custom btn-gps" onclick="startGPS()">
+                <i class="fas fa-location-dot"></i>
+                <span data-translate="startGPS">GPS'i Başlat</span>
             </button>
-            <button class="btn-custom" onclick="centerMap()" aria-label="Haritayı konumuma ortala">
-                <i class="fas fa-crosshairs" aria-hidden="true"></i>
-                <span>Konumuma Git</span>
+            <button class="btn-custom" onclick="centerMap()">
+                <i class="fas fa-crosshairs"></i>
+                <span data-translate="centerMap">Konumuma Git</span>
             </button>
-            <button class="btn-custom btn-emergency" onclick="showEmergency()" aria-label="Acil durum çağrısı">
-                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
-                <span>SOS - Acil Durum</span>
+            <button class="btn-custom btn-emergency" onclick="showEmergency()">
+                <i class="fas fa-phone-volume"></i>
+                <span>SOS - ACİL 112</span>
             </button>
 
             <!-- Tabs -->
-            <div class="tabs" role="tablist" aria-label="İçerik sekmeleri">
-                <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="overview" id="tab-overview" onclick="switchTab('overview', event)">Genel</button>
-                <button class="tab-btn" role="tab" aria-selected="false" aria-controls="weather" id="tab-weather" onclick="switchTab('weather', event)">Hava</button>
-                <button class="tab-btn" role="tab" aria-selected="false" aria-controls="stages" id="tab-stages" onclick="switchTab('stages', event)">Etaplar</button>
-                <button class="tab-btn" role="tab" aria-selected="false" aria-controls="facilities" id="tab-facilities" onclick="switchTab('facilities', event)">Tesisler</button>
+            <div class="tabs" role="tablist">
+                <button class="tab-btn active" role="tab" onclick="switchTab('overview', event)" data-translate="overview">Genel</button>
+                <button class="tab-btn" role="tab" onclick="switchTab('weather', event)" data-translate="weather">Hava</button>
+                <button class="tab-btn" role="tab" onclick="switchTab('stages', event)" data-translate="stages">Etaplar</button>
+                <button class="tab-btn" role="tab" onclick="switchTab('facilities', event)" data-translate="facilities">Tesisler</button>
             </div>
 
-            <!-- Tab Contents -->
-            <div id="overview" class="tab-content active" role="tabpanel" aria-labelledby="tab-overview">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active" role="tabpanel">
                 <h2 class="section-title">Likya Yolu Bilgileri</h2>
                 <div class="info-card">
-                    <h3>Toplam Uzunluk</h3>
-                    <p>540 km</p>
+                    <h5 data-translate="totalLength">Toplam Uzunluk</h5>
+                    <p>528 km</p>
                 </div>
                 <div class="info-card">
-                    <h3>Etap Sayısı</h3>
-                    <p>32 Etap</p>
+                    <h5 data-translate="stageCount">Etap Sayısı</h5>
+                    <p>24 Etap</p>
                 </div>
                 <div class="info-card">
-                    <h3>Zorluk Seviyesi</h3>
+                    <h5 data-translate="difficulty">Zorluk Seviyesi</h5>
                     <p>Orta - Zor</p>
                 </div>
                 <div class="info-card">
-                    <h3>Tavsiye Edilen Süre</h3>
-                    <p>15-20 Gün</p>
-                </div>
-                <h2 class="section-title">Güvenlik Durumu</h2>
-                <div class="info-card">
-                    <h3>Mevcut Risk Seviyesi</h3>
-                    <p>Harita üzerinde seçilen bölgeye göre değişir</p>
-                    <span class="risk-badge risk-medium">Orta Risk</span>
+                    <h5 data-translate="recommendedTime">Tavsiye Edilen Süre</h5>
+                    <p>20-30 Gün</p>
                 </div>
             </div>
 
-            <div id="weather" class="tab-content" role="tabpanel" aria-labelledby="tab-weather">
-                <h2 class="section-title">Canlı Hava Durumu</h2>
+            <!-- Weather Tab -->
+            <div id="weather" class="tab-content" role="tabpanel">
+                <h2 class="section-title" data-translate="liveWeather">Canlı Hava Durumu</h2>
                 <div class="info-card">
-                    <h3>Güncel Koşullar</h3>
+                    <h5>Güncel Koşullar (OpenWeather API)</h5>
                     <div class="weather-grid">
                         <div class="weather-item">
-                            <div class="value" id="tempValue" aria-label="Sıcaklık">--°C</div>
-                            <div class="label">Sıcaklık</div>
+                            <div class="value" id="tempValue">--°C</div>
+                            <div class="label" data-translate="temperature">Sıcaklık</div>
                         </div>
                         <div class="weather-item">
-                            <div class="value" id="humidityValue" aria-label="Nem">--%</div>
-                            <div class="label">Nem</div>
+                            <div class="value" id="humidityValue">--%</div>
+                            <div class="label" data-translate="humidity">Nem</div>
                         </div>
                         <div class="weather-item">
-                            <div class="value" id="windValue" aria-label="Rüzgar hızı">-- km/h</div>
-                            <div class="label">Rüzgar</div>
+                            <div class="value" id="windValue">-- km/h</div>
+                            <div class="label" data-translate="wind">Rüzgar</div>
                         </div>
                         <div class="weather-item">
-                            <div class="value" id="pressureValue" aria-label="Basınç">-- mb</div>
-                            <div class="label">Basınç</div>
+                            <div class="value" id="pressureValue">-- mb</div>
+                            <div class="label" data-translate="pressure">Basınç</div>
                         </div>
                     </div>
                 </div>
-                <h2 class="section-title">Geçmiş Yıllar Hava Durumu</h2>
+                <h2 class="section-title" data-translate="pastWeather">Geçmiş Yıllar</h2>
                 <div class="chart-container">
-                    <canvas id="weatherChart" role="img" aria-label="Geçmiş yıllar sıcaklık grafiği"></canvas>
+                    <canvas id="weatherChart"></canvas>
                 </div>
             </div>
 
-            <div id="stages" class="tab-content" role="tabpanel" aria-labelledby="tab-stages">
-                <h2 class="section-title">32 Etap Listesi</h2>
+            <!-- Stages Tab -->
+            <div id="stages" class="tab-content" role="tabpanel">
+                <h2 class="section-title" data-translate="stageList">24 Etap Listesi</h2>
                 <div id="stagesList" role="list"></div>
             </div>
 
-            <div id="facilities" class="tab-content" role="tabpanel" aria-labelledby="tab-facilities">
-                <h2 class="section-title">Konaklama ve Tesisler</h2>
+            <!-- Facilities Tab -->
+            <div id="facilities" class="tab-content" role="tabpanel">
+                <h2 class="section-title" data-translate="accommodationFacilities">Konaklama ve Tesisler</h2>
                 <div id="facilitiesList" role="list"></div>
             </div>
         </aside>
@@ -648,36 +566,24 @@
     </main>
 
     <!-- Emergency Modal -->
-    <div id="emergencyModal" class="modal-custom" role="dialog" aria-modal="true" aria-labelledby="emergencyModalTitle">
+    <div id="emergencyModal" class="modal-custom" role="dialog" aria-modal="true">
         <div class="modal-content-custom">
-            <h3 id="emergencyModalTitle">
-                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
-                <span>Acil Durum Bildirimi</span>
+            <h3>
+                <i class="fas fa-phone-volume"></i>
+                <span>ACİL DURUM - 112</span>
             </h3>
-            <p>Acil durumda, aşağıdaki seçeneklerden birini seçin:</p>
-            <div style="margin: 1.5rem 0;">
-                <button class="btn-custom" onclick="callEmergency('police')" aria-label="Polis çağır">
-                    <i class="fas fa-phone" aria-hidden="true"></i>
-                    <span>Polis Çağır (155)</span>
-                </button>
-                <button class="btn-custom" onclick="callEmergency('ambulance')" aria-label="Ambulans çağır">
-                    <i class="fas fa-phone" aria-hidden="true"></i>
-                    <span>Ambulans Çağır (112)</span>
-                </button>
-                <button class="btn-custom" onclick="callEmergency('mountain')" aria-label="Dağ kurtarma çağır">
-                    <i class="fas fa-phone" aria-hidden="true"></i>
-                    <span>Dağ Kurtarma (177)</span>
-                </button>
-            </div>
-            <p style="font-size: 0.9rem; color: var(--text-light); margin-top: 1rem;">
-                <i class="fas fa-info-circle" aria-hidden="true"></i>
-                Konumunuz otomatik olarak gönderilecektir.
+            <p style="font-size: 1.1rem; margin: 1.5rem 0;">
+                <strong>112 Acil Sağlık</strong> numarasını arayın.
+                <br><br>
+                Konumunuz otomatik olarak paylaşılacak.
             </p>
-            <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeEmergency()" style="background: var(--border-color); color: var(--text-dark); padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 700;">
-                    İptal
-                </button>
-            </div>
+            <button class="btn-custom btn-emergency" onclick="call112()" style="font-size: 1.2rem; padding: 1rem;">
+                <i class="fas fa-phone"></i>
+                <span>112'Yİ ARA</span>
+            </button>
+            <button class="btn-custom" onclick="closeEmergency()" style="background: #6c757d; margin-top: 0.5rem;">
+                <span data-translate="cancel">İptal</span>
+            </button>
         </div>
     </div>
 
