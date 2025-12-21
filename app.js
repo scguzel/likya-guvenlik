@@ -136,6 +136,45 @@ const WATER_SOURCES = [
 ];
 
 // ============================================================================
+// HOSPITALS
+// ============================================================================
+
+const HOSPITALS = [
+    { 
+        name: 'Fethiye Devlet Hastanesi', 
+        coords: [36.6526, 29.1198], 
+        phone: '112',
+        distance: 'Başlangıç noktası',
+        icon: '🏥'
+    },
+    { 
+        name: 'Kaş Devlet Hastanesi', 
+        coords: [36.1992, 29.6362], 
+        phone: '112',
+        distance: '~200 km',
+        icon: '🏥'
+    },
+    { 
+        name: 'Antalya Eğitim Araştırma Hastanesi', 
+        coords: [36.8969, 30.7133], 
+        phone: '112',
+        distance: 'Bitiş noktası',
+        icon: '🏥'
+    }
+];
+
+// ============================================================================
+// WEATHER API CONFIG
+// ============================================================================
+
+const WEATHER_CONFIG = {
+    API_KEY: '007b67b6185ac73e3b2226ae39d527df',
+    BASE_URL: 'https://api.openweathermap.org/data/2.5',
+    LOCATION: { lat: 36.5, lon: 29.5 }, // Likya Yolu merkez koordinatı
+    UPDATE_INTERVAL: 1800000 // 30 dakika
+};
+
+// ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
 
@@ -184,6 +223,12 @@ function initMap() {
 
     // Add water sources
     addWaterSources();
+
+    // Add hospitals
+    addHospitals();
+
+    // Load weather
+    loadWeather();
 
     // Hide loading
     setTimeout(() => {
@@ -284,104 +329,238 @@ function addWaterSources() {
 }
 
 // ============================================================================
-// UI RENDERING - 32 ETAP LİSTESİ
+// HOSPITALS
 // ============================================================================
+
+function addHospitals() {
+    HOSPITALS.forEach(hospital => {
+        const marker = L.marker(hospital.coords, {
+            icon: L.divIcon({
+                html: `<div style="background: #dc2626; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">🏥</div>`,
+                className: '',
+                iconSize: [32, 32]
+            })
+        }).addTo(State.map);
+
+        marker.bindPopup(`
+            <div style="font-family: 'Inter', sans-serif; text-align: center; min-width: 180px;">
+                <div style="font-size: 28px; margin-bottom: 8px;">🏥</div>
+                <h4 style="margin: 0 0 6px 0; color: #dc2626; font-size: 14px; font-weight: 700;">${hospital.name}</h4>
+                <p style="margin: 4px 0; font-size: 12px; color: #64748b;"><strong>📞 Acil:</strong> ${hospital.phone}</p>
+                <p style="margin: 4px 0; font-size: 11px; color: #64748b;">📍 ${hospital.distance}</p>
+                <button onclick="window.location.href='tel:112'" style="margin-top: 8px; padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px;">
+                    📞 112 ARA
+                </button>
+            </div>
+        `);
+    });
+}
+
+function renderHospitalsList() {
+    const container = document.getElementById('hospitalsList');
+    container.innerHTML = '';
+
+    HOSPITALS.forEach(hospital => {
+        const card = document.createElement('div');
+        card.className = 'hospital-card';
+        
+        card.innerHTML = `
+            <div class="hospital-name">
+                <span>${hospital.icon}</span>
+                <span>${hospital.name}</span>
+            </div>
+            <div class="hospital-info">
+                📞 ${hospital.phone} • 📍 ${hospital.distance}
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            State.map.setView(hospital.coords, 13);
+        });
+
+        container.appendChild(card);
+    });
+}
+
+// ============================================================================
+// WEATHER API
+// ============================================================================
+
+async function loadWeather() {
+    const container = document.getElementById('weatherCard');
+    
+    try {
+        const { lat, lon } = WEATHER_CONFIG.LOCATION;
+        const url = `${WEATHER_CONFIG.BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_CONFIG.API_KEY}&units=metric&lang=tr`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.cod === 200) {
+            renderWeather(data);
+        } else {
+            throw new Error('Weather API error');
+        }
+    } catch (error) {
+        console.error('Weather fetch error:', error);
+        container.innerHTML = `
+            <div style="text-align: center; font-size: 12px;">
+                <i class="fas fa-exclamation-triangle"></i> Hava durumu yüklenemedi
+            </div>
+        `;
+    }
+
+    // Auto update every 30 minutes
+    setTimeout(loadWeather, WEATHER_CONFIG.UPDATE_INTERVAL);
+}
+
+function renderWeather(data) {
+    const container = document.getElementById('weatherCard');
+    const temp = Math.round(data.main.temp);
+    const feelsLike = Math.round(data.main.feels_like);
+    const humidity = data.main.humidity;
+    const windSpeed = Math.round(data.wind.speed * 3.6); // m/s to km/h
+    const pressure = data.main.pressure;
+    const description = data.weather[0].description;
+    const icon = getWeatherIcon(data.weather[0].main);
+
+    container.innerHTML = `
+        <div class="weather-location">
+            <i class="fas fa-map-marker-alt"></i>
+            Likya Yolu - Fethiye/Antalya
+        </div>
+        <div class="weather-temp">
+            <span style="font-size: 40px;">${icon}</span>
+            <span>${temp}°C</span>
+        </div>
+        <div class="weather-desc">${description}</div>
+        <div class="weather-details">
+            <div class="weather-item">
+                <i class="fas fa-temperature-half"></i>
+                Hissedilen: ${feelsLike}°C
+            </div>
+            <div class="weather-item">
+                <i class="fas fa-droplet"></i>
+                Nem: ${humidity}%
+            </div>
+            <div class="weather-item">
+                <i class="fas fa-wind"></i>
+                Rüzgar: ${windSpeed} km/h
+            </div>
+            <div class="weather-item">
+                <i class="fas fa-gauge"></i>
+                Basınç: ${pressure} mb
+            </div>
+        </div>
+    `;
+}
+
+function getWeatherIcon(condition) {
+    const icons = {
+        'Clear': '☀️',
+        'Clouds': '☁️',
+        'Rain': '🌧️',
+        'Drizzle': '🌦️',
+        'Thunderstorm': '⛈️',
+        'Snow': '❄️',
+        'Mist': '🌫️',
+        'Fog': '🌫️',
+        'Haze': '🌫️'
+    };
+    return icons[condition] || '🌤️';
+}
+
+// ============================================================================
+// UI RENDERING - GPX SECTIONS + 32 STAGES
+// ============================================================================
+
+function renderGPXSections() {
+    const container = document.getElementById('gpxSectionsList');
+    container.innerHTML = '';
+
+    GPX_SECTIONS.forEach(section => {
+        const card = document.createElement('div');
+        card.className = 'gpx-card';
+        card.onclick = () => selectGPXSection(section);
+
+        const dashStyle = section.style === 'dashed' ? 'border-top: 4px dashed' : 
+                         section.style === 'dotted' ? 'border-top: 4px dotted' : '';
+
+        card.innerHTML = `
+            <div class="gpx-header">
+                <div class="gpx-line" style="background: ${section.color}; ${dashStyle}"></div>
+                <div class="gpx-title">${section.name}</div>
+            </div>
+            <div class="gpx-info">
+                <span>📏 ${section.distance} km</span>
+                <span>⚡ ${section.difficulty}</span>
+                <span>💧 ${section.waterSources} su</span>
+                <span>📍 Etap ${section.stages[0]}-${section.stages[section.stages.length-1]}</span>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
 
 function renderAllStages() {
     const container = document.getElementById('stagesList');
     container.innerHTML = '';
 
-    // Statistics Header
-    const statsDiv = document.createElement('div');
-    statsDiv.style.cssText = 'background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 16px; border-radius: 8px; margin-bottom: 16px;';
-    statsDiv.innerHTML = `
-        <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700;">📊 İSTATİSTİKLER</h3>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 12px;">
-            <div><strong>Toplam Etap:</strong> 32</div>
-            <div><strong>Toplam:</strong> ~540 km</div>
-            <div><strong>Kolay:</strong> ${ALL_STAGES.filter(s => s.difficulty === 'Kolay').length}</div>
-            <div><strong>Orta:</strong> ${ALL_STAGES.filter(s => s.difficulty === 'Orta').length}</div>
-            <div><strong>Zor:</strong> ${ALL_STAGES.filter(s => s.difficulty === 'Zor').length}</div>
-            <div><strong>Yüksek Risk:</strong> ${ALL_STAGES.filter(s => s.risk === 'high').length}</div>
-        </div>
-    `;
-    container.appendChild(statsDiv);
-
-    // Filter Buttons
-    const filterDiv = document.createElement('div');
-    filterDiv.style.cssText = 'display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap;';
-    filterDiv.innerHTML = `
-        <button class="filter-btn active" data-filter="all" style="flex: 1; padding: 8px; border: none; border-radius: 4px; background: #1e40af; color: white; font-size: 11px; font-weight: 600; cursor: pointer;">Tümü (32)</button>
-        <button class="filter-btn" data-filter="low" style="flex: 1; padding: 8px; border: none; border-radius: 4px; background: #f1f5f9; color: #334155; font-size: 11px; font-weight: 600; cursor: pointer;">Düşük Risk</button>
-        <button class="filter-btn" data-filter="medium" style="flex: 1; padding: 8px; border: none; border-radius: 4px; background: #f1f5f9; color: #334155; font-size: 11px; font-weight: 600; cursor: pointer;">Orta Risk</button>
-        <button class="filter-btn" data-filter="high" style="flex: 1; padding: 8px; border: none; border-radius: 4px; background: #f1f5f9; color: #334155; font-size: 11px; font-weight: 600; cursor: pointer;">Yüksek Risk</button>
-    `;
-    container.appendChild(filterDiv);
-
     // Add filter event listeners
-    filterDiv.querySelectorAll('.filter-btn').forEach(btn => {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            filterDiv.querySelectorAll('.filter-btn').forEach(b => {
-                b.style.background = '#f1f5f9';
-                b.style.color = '#334155';
+            document.querySelectorAll('.filter-btn').forEach(b => {
                 b.classList.remove('active');
             });
-            btn.style.background = '#1e40af';
-            btn.style.color = 'white';
             btn.classList.add('active');
-            filterStages(btn.dataset.filter);
+            renderStagesList(btn.dataset.filter);
         });
     });
 
-    // Stages List
-    const listDiv = document.createElement('div');
-    listDiv.id = 'stagesListContainer';
-    container.appendChild(listDiv);
-
+    // Initial render
     renderStagesList('all');
 }
 
 function renderStagesList(filter) {
-    const listDiv = document.getElementById('stagesListContainer');
-    listDiv.innerHTML = '';
+    const container = document.getElementById('stagesList');
+    container.innerHTML = '';
 
     const filtered = filter === 'all' ? ALL_STAGES : ALL_STAGES.filter(s => s.risk === filter);
 
     filtered.forEach(stage => {
         const card = document.createElement('div');
         card.className = 'stage-card-mini';
-        card.style.cssText = 'padding: 10px; margin-bottom: 6px; background: white; border-left: 4px solid; border-radius: 6px; cursor: pointer; transition: all 0.2s;';
         card.style.borderColor = getRiskColor(stage.risk);
 
         card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <span style="font-size: 13px; font-weight: 700; color: #1e293b;">${stage.id}. ${stage.name}</span>
-                <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: ${getRiskColor(stage.risk)}; color: white; font-weight: 600;">${getRiskText(stage.risk)}</span>
+            <div class="stage-header-mini">
+                <span class="stage-name">${stage.id}. ${stage.name}</span>
+                <span class="risk-badge" style="background: ${getRiskColor(stage.risk)};">${getRiskText(stage.risk)}</span>
             </div>
-            <div style="font-size: 11px; color: #64748b; display: flex; gap: 12px;">
+            <div class="stage-info-mini">
                 <span>📏 ${stage.distance} km</span>
                 <span style="color: ${getDifficultyColor(stage.difficulty)};">⚡ ${stage.difficulty}</span>
             </div>
         `;
 
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateX(4px)';
-            card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-        });
-
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateX(0)';
-            card.style.boxShadow = 'none';
-        });
-
         card.addEventListener('click', () => selectStageById(stage.id));
 
-        listDiv.appendChild(card);
+        container.appendChild(card);
     });
 }
 
-function filterStages(filter) {
-    renderStagesList(filter);
+function selectGPXSection(section) {
+    const gpxData = State.gpxLayers.find(g => g.section.id === section.id);
+    if (gpxData && gpxData.layer) {
+        const bounds = gpxData.layer.getBounds();
+        if (bounds.isValid()) {
+            State.map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    }
+    
+    // Show elevation chart
+    renderElevationChart(section);
 }
 
 function selectStageById(stageId) {
@@ -560,6 +739,7 @@ document.getElementById('layerBtn').addEventListener('click', toggleLayer);
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Likya Yolu Harita Sistemi - 32 ETAP başlatılıyor...');
     initMap();
+    renderGPXSections();
     renderAllStages();
-    console.log('✅ 32 Etap + GPX Sistemi hazır!');
+    console.log('✅ 32 Etap + 3 GPX Bölüm + Su Kaynakları hazır!');
 });

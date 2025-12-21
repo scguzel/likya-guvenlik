@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Likya Yolu gelişmiş interaktif harita - GPX destekli, yükseklik profili, su kaynakları ve risk analizi">
-    <meta name="keywords" content="Likya Yolu, GPX, harita, trekking, hiking, yükseklik profili">
+    <meta name="description" content="Likya Yolu gelişmiş interaktif harita - 32 etap, GPX destekli, yükseklik profili">
+    <meta name="keywords" content="Likya Yolu, GPX, harita, 32 etap, trekking, hiking">
     <meta name="theme-color" content="#1e40af">
     
-    <title>Likya Yolu - Gelişmiş İnteraktif Harita Sistemi</title>
+    <title>Likya Yolu - 32 Etap İnteraktif Harita</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -152,57 +152,155 @@
         }
 
         .section-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: var(--text-dark);
             margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .stage-card {
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-light));
+            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .stats-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .gpx-card {
             padding: 12px;
             margin-bottom: 8px;
-            background: #f8fafc;
+            background: white;
             border: 2px solid var(--border-color);
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .stage-card:hover {
+        .gpx-card:hover {
             border-color: var(--primary-blue);
             box-shadow: var(--shadow);
+            transform: translateX(2px);
         }
 
-        .stage-card.active {
-            background: #eff6ff;
-            border-color: currentColor;
-        }
-
-        .stage-header {
+        .gpx-header {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 6px;
         }
 
-        .stage-line {
+        .gpx-line {
             width: 32px;
             height: 4px;
             border-radius: 2px;
         }
 
-        .stage-title {
-            font-size: 14px;
+        .gpx-title {
+            font-size: 13px;
             font-weight: 600;
             color: var(--text-dark);
         }
 
-        .stage-info {
-            font-size: 12px;
+        .gpx-info {
+            font-size: 11px;
             color: var(--text-gray);
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            flex: 1;
+            min-width: 70px;
+            padding: 8px 4px;
+            border: none;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #334155;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .filter-btn.active {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .stage-card-mini {
+            padding: 10px;
+            margin-bottom: 6px;
+            background: white;
+            border-left: 4px solid;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .stage-card-mini:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+        }
+
+        .stage-header-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .stage-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .risk-badge {
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .stage-info-mini {
+            font-size: 11px;
+            color: var(--text-gray);
+            display: flex;
+            gap: 12px;
         }
 
         .elevation-chart {
@@ -214,7 +312,7 @@
         }
 
         .chart-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             margin-bottom: 12px;
             display: flex;
@@ -225,8 +323,8 @@
         .chart-bars {
             display: flex;
             align-items: flex-end;
-            height: 120px;
-            gap: 4px;
+            height: 100px;
+            gap: 3px;
         }
 
         .chart-bar {
@@ -244,10 +342,10 @@
 
         .chart-bar-label {
             position: absolute;
-            top: -20px;
+            top: -18px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
             color: var(--secondary-green);
             white-space: nowrap;
@@ -257,7 +355,7 @@
             margin-top: 12px;
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-gray);
         }
 
@@ -285,12 +383,12 @@
             padding: 12px;
             border-radius: 8px;
             box-shadow: var(--shadow-lg);
-            font-size: 12px;
+            font-size: 11px;
             z-index: 1000;
         }
 
         .legend-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             margin-bottom: 8px;
         }
@@ -340,7 +438,7 @@
             .legend {
                 bottom: 10px;
                 right: 10px;
-                font-size: 11px;
+                font-size: 10px;
             }
         }
 
@@ -364,6 +462,13 @@
         .water-marker {
             animation: water-pulse 2s infinite;
         }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 16px 0;
+        }
     </style>
 </head>
 <body>
@@ -376,7 +481,7 @@
                     <i class="fas fa-mountain"></i>
                     Likya Yolu Harita
                 </h1>
-                <p>3 Bölüm • 528 km • İnteraktif GPX</p>
+                <p>32 Etap • 540 km • İnteraktif GPX</p>
             </div>
 
             <!-- Controls -->
@@ -393,7 +498,65 @@
 
             <!-- Content -->
             <div class="content">
-                <h2 class="section-title">Etap Seçimi</h2>
+                <!-- Statistics -->
+                <div class="stats-card">
+                    <div class="stats-title">📊 İSTATİSTİKLER</div>
+                    <div class="stats-grid">
+                        <div class="stats-item"><span>Toplam Etap:</span><strong>32</strong></div>
+                        <div class="stats-item"><span>Toplam:</span><strong>~540 km</strong></div>
+                        <div class="stats-item"><span>Kolay:</span><strong id="statEasy">8</strong></div>
+                        <div class="stats-item"><span>Orta:</span><strong id="statMedium">18</strong></div>
+                        <div class="stats-item"><span>Zor:</span><strong id="statHard">6</strong></div>
+                        <div class="stats-item"><span>Yüksek Risk:</span><strong id="statHighRisk">6</strong></div>
+                    </div>
+                </div>
+
+                <!-- GPX Sections -->
+                <h2 class="section-title">
+                    <i class="fas fa-route"></i>
+                    GPX Bölümleri
+                </h2>
+                <div id="gpxSectionsList"></div>
+
+                <div class="divider"></div>
+
+                <!-- Weather Card -->
+                <h2 class="section-title">
+                    <i class="fas fa-cloud-sun"></i>
+                    Canlı Hava Durumu
+                </h2>
+                <div class="weather-card" id="weatherCard">
+                    <div class="weather-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Yükleniyor...
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Hospitals -->
+                <h2 class="section-title">
+                    <i class="fas fa-hospital"></i>
+                    Hastaneler
+                </h2>
+                <div id="hospitalsList"></div>
+
+                <div class="divider"></div>
+
+                <!-- 32 Stages -->
+                <h2 class="section-title">
+                    <i class="fas fa-list-ol"></i>
+                    32 Etap Listesi
+                </h2>
+
+                <!-- Filters -->
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Tümü (32)</button>
+                    <button class="filter-btn" data-filter="low">Düşük</button>
+                    <button class="filter-btn" data-filter="medium">Orta</button>
+                    <button class="filter-btn" data-filter="high">Yüksek</button>
+                </div>
+
+                <!-- Stages List -->
                 <div id="stagesList"></div>
 
                 <!-- Elevation Chart -->
@@ -438,7 +601,7 @@
                     <span>Bölüm 3 (218 km)</span>
                 </div>
                 <div class="legend-item">
-                    <span style="font-size: 16px;">💧</span>
+                    <span style="font-size: 14px;">💧</span>
                     <span>Su Kaynağı</span>
                 </div>
             </div>
