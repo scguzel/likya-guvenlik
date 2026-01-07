@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çevrimdışı - Likya Yolu</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            max-width: 500px;
+        }
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+        p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .btn {
+            background: white;
+            color: #1e40af;
+            padding: 14px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .features {
+            margin-top: 40px;
+            text-align: left;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .features h3 {
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        .features ul {
+            list-style: none;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .features li {
+            padding: 6px 0;
+        }
+        .features li:before {
+            content: "✓ ";
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>İnternet Bağlantısı Yok</h1>
+        <p>
+            Likya Yolu uygulaması çevrimdışı çalışabilir! 
+            Daha önce yüklediğiniz harita verileri ve özellikler hala kullanılabilir.
+        </p>
+        <a href="/" class="btn" onclick="location.reload(); return false;">
+            🔄 Yeniden Dene
+        </a>
+
+        <div class="features">
+            <h3>Çevrimdışı Özellikler:</h3>
+            <ul>
+                <li>Önbelleğe alınmış harita görünümü</li>
+                <li>32 etap bilgileri</li>
+                <li>Su kaynakları ve hastane konumları</li>
+                <li>GPX rota dosyaları (önceden yüklenmişse)</li>
+                <li>GPS konum takibi</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
