@@ -1,9 +1,7 @@
-// service-worker.js
-const CACHE_NAME = 'likya-yolu-v1.0.0';
+const CACHE_NAME = 'likya-yolu-v2.0.0';
 const OFFLINE_URL = '/offline.html';
 
-// Önbelleğe alınacak dosyalar
-const urlsToCache = [
+const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/app.js',
@@ -15,28 +13,28 @@ const urlsToCache = [
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// Install event - önbelleğe al
+// Install event
 self.addEventListener('install', (event) => {
-  console.log('✅ Service Worker yükleniyor...');
+  console.log('✅ Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('📦 Dosyalar önbelleğe alınıyor...');
-        return cache.addAll(urlsToCache);
+        console.log('📦 Caching static assets...');
+        return cache.addAll(STATIC_ASSETS);
       })
       .then(() => self.skipWaiting())
   );
 });
 
-// Activate event - eski önbellekleri temizle
+// Activate event
 self.addEventListener('activate', (event) => {
-  console.log('🔄 Service Worker aktifleştiriliyor...');
+  console.log('🔄 Service Worker activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('🗑️ Eski önbellek siliniyor:', cacheName);
+            console.log('🗑️ Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -45,104 +43,73 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - Network First, Cache Fallback stratejisi
+// Fetch event
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  
-  // API istekleri için özel yönetim
-  if (request.url.includes('api.openweathermap.org')) {
+  const url = new URL(request.url);
+
+  if (request.method !== 'GET') return;
+
+  // Weather API - Network First
+  if (url.pathname.includes('/.netlify/functions/weather')) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // API yanıtını önbelleğe al (30 dakika)
+      Promise.race([
+        fetch(request).then((response) => {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, responseClone);
           });
           return response;
+        }),
+        new Promise((resolve, reject) => {
+          setTimeout(() => reject(new Error('Timeout')), 5000);
         })
-        .catch(() => {
-          // Offline ise önbellekten döndür
-          return caches.match(request);
-        })
+      ]).catch(() => {
+        return caches.match(request);
+      })
     );
     return;
   }
 
-  // GPX dosyaları için
+  // GPX files - Cache First
   if (request.url.includes('.gpx')) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        
+        return fetch(request).then((response) => {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, responseClone);
           });
           return response;
-        })
-        .catch(() => {
-          return caches.match(request);
-        })
+        });
+      })
     );
     return;
   }
 
-  // Diğer istekler için Cache First stratejisi
+  // Static assets - Cache First
   event.respondWith(
-    caches.match(request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          // Önbellekte var, onu döndür
-          return cachedResponse;
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse;
+
+      return fetch(request).then((response) => {
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
         }
-        
-        // Önbellekte yok, internetten al
-        return fetch(request)
-          .then((response) => {
-            // Geçerli yanıt değilse veya ağ isteği değilse önbelleğe alma
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
 
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, responseClone);
+        });
 
-            return response;
-          })
-          .catch(() => {
-            // Tamamen offline - offline sayfasını göster
-            if (request.destination === 'document') {
-              return caches.match(OFFLINE_URL);
-            }
-          });
-      })
-  );
-});
-
-// Background Sync (gelecekteki güncellemeler için)
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-weather') {
-    event.waitUntil(
-      // Hava durumu verilerini güncelle
-      console.log('🔄 Arka planda hava durumu güncelleniyor...')
-    );
-  }
-});
-
-// Push notification desteği (opsiyonel)
-self.addEventListener('push', (event) => {
-  const options = {
-    body: event.data ? event.data.text() : 'Likya Yolu güvenlik uyarısı',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
-    vibrate: [200, 100, 200],
-    tag: 'likya-notification',
-    requireInteraction: false
-  };
-
-  event.waitUntil(
-    self.registration.showNotification('Likya Yolu', options)
+        return response;
+      }).catch(() => {
+        if (request.destination === 'document') {
+          return caches.match(OFFLINE_URL);
+        }
+      });
+    })
   );
 });

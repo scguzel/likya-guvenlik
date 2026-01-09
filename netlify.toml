@@ -1,35 +1,51 @@
-# Netlify Configuration for Likya Yolu
 [build]
+  command = "echo 'No build needed'"
   publish = "."
-  command = "echo 'No build needed - static site'"
+  functions = "netlify/functions"
 
-# Redirect rules
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Headers for performance
 [[headers]]
-  for = "/*.html"
+  for = "/*"
   [headers.values]
-    Cache-Control = "public, max-age=3600"
-    X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(self), camera=(), microphone=()"
 
 [[headers]]
-  for = "/*.gpx"
+  for = "/service-worker.js"
   [headers.values]
-    Cache-Control = "public, max-age=31536000"
-    Content-Type = "application/gpx+xml"
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Service-Worker-Allowed = "/"
 
 [[headers]]
-  for = "/*.js"
+  for = "/manifest.json"
   [headers.values]
-    Cache-Control = "public, max-age=31536000"
+    Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
-  for = "/*.css"
+  for = "/icons/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "application/javascript; charset=utf-8"
+
+[dev]
+  command = "python -m http.server 8888"
+  targetPort = 8888
+  port = 8888
+  autoLaunch = true

@@ -2,31 +2,54 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Likya Yolu Güvenli Adımlar - YZ Destekli Akıllı Harita ve Bağlamsal Risk Analizi">
     <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Likya Yolu">
     <title>Likya Yolu - Güvenli Adımlar</title>
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/201/201623.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
     
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --success: #16a34a;
+            --success-light: #22c55e;
+            --danger: #dc2626;
+            --danger-light: #ef4444;
+            --warning: #f59e0b;
+            --warning-light: #fbbf24;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             overflow: hidden;
-            background: #f0f4f8;
+            background: var(--gray-50);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
             display: flex;
             height: 100vh;
+            height: 100dvh;
         }
 
         .sidebar {
@@ -36,10 +59,11 @@
             display: flex;
             flex-direction: column;
             z-index: 1000;
+            transition: transform 0.3s ease;
         }
 
         .header {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
             color: white;
             padding: 20px;
         }
@@ -60,33 +84,35 @@
 
         .controls {
             padding: 16px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--gray-200);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
 
         .btn {
-            width: 100%;
             padding: 12px;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            margin-bottom: 8px;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
+            white-space: nowrap;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        .btn:active {
+            transform: scale(0.98);
         }
 
         .btn-gps {
-            background: linear-gradient(135deg, #16a34a, #22c55e);
+            background: linear-gradient(135deg, var(--success), var(--success-light));
             color: white;
+            grid-column: 1 / -1;
         }
 
         .btn-gps.active {
@@ -95,17 +121,24 @@
         }
 
         .btn-layer {
-            background: linear-gradient(135deg, #64748b, #94a3b8);
+            background: linear-gradient(135deg, var(--gray-500), #94a3b8);
             color: white;
         }
 
+        .btn-menu {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            display: none;
+        }
+
         .btn-sos {
-            background: linear-gradient(135deg, #dc2626, #ef4444);
+            background: linear-gradient(135deg, var(--danger), var(--danger-light));
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             padding: 16px;
             box-shadow: 0 4px 12px rgba(220,38,38,0.3);
             animation: pulse-sos 2s infinite;
+            grid-column: 1 / -1;
         }
 
         @keyframes pulse-sos {
@@ -116,22 +149,24 @@
         .content {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 16px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .content::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
 
         .content::-webkit-scrollbar-thumb {
-            background: #3b82f6;
-            border-radius: 4px;
+            background: var(--primary-light);
+            border-radius: 3px;
         }
 
         .section-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
-            color: #1e293b;
+            color: var(--gray-900);
             margin-bottom: 12px;
             display: flex;
             align-items: center;
@@ -140,7 +175,7 @@
 
         .warning-box {
             background: #fef3c7;
-            border: 2px solid #fbbf24;
+            border: 2px solid var(--warning-light);
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 16px;
@@ -157,7 +192,7 @@
         }
 
         .weather-card {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
             color: white;
             padding: 16px;
             border-radius: 8px;
@@ -209,14 +244,14 @@
             padding: 12px;
             margin-bottom: 8px;
             background: white;
-            border: 2px solid #e5e7eb;
+            border: 2px solid var(--gray-200);
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .gpx-card:hover {
-            border-color: #3b82f6;
+        .gpx-card:hover, .gpx-card:active {
+            border-color: var(--primary-light);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transform: translateX(3px);
         }
@@ -237,12 +272,12 @@
         .gpx-title {
             font-size: 13px;
             font-weight: 600;
-            color: #1e293b;
+            color: var(--gray-900);
         }
 
         .gpx-info {
             font-size: 11px;
-            color: #64748b;
+            color: var(--gray-500);
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
@@ -255,25 +290,20 @@
             border-radius: 4px;
             font-size: 11px;
             color: #78350f;
-            display: none;
-        }
-
-        .gpx-card:hover .gpx-warning {
-            display: block;
         }
 
         .filter-buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 4px;
             margin-bottom: 12px;
         }
 
         .filter-btn {
-            flex: 1;
             padding: 8px 4px;
             border: none;
             border-radius: 6px;
-            background: #f1f5f9;
+            background: var(--gray-100);
             color: #334155;
             font-size: 11px;
             font-weight: 600;
@@ -281,12 +311,12 @@
             transition: all 0.2s;
         }
 
-        .filter-btn:hover {
-            background: #e2e8f0;
+        .filter-btn:active {
+            transform: scale(0.95);
         }
 
         .filter-btn.active {
-            background: #1e40af;
+            background: var(--primary);
             color: white;
         }
 
@@ -300,7 +330,7 @@
             transition: all 0.2s;
         }
 
-        .stage-card:hover {
+        .stage-card:active {
             transform: translateX(4px);
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
@@ -315,7 +345,7 @@
         .stage-name {
             font-size: 12px;
             font-weight: 700;
-            color: #1e293b;
+            color: var(--gray-900);
         }
 
         .risk-badge {
@@ -328,7 +358,7 @@
 
         .stage-info {
             font-size: 11px;
-            color: #64748b;
+            color: var(--gray-500);
             display: flex;
             gap: 12px;
             margin-bottom: 8px;
@@ -357,7 +387,7 @@
         .abtm-info {
             background: #dbeafe;
             border: 1px solid #93c5fd;
-            color: #1e40af;
+            color: var(--primary);
         }
 
         .abtm-title {
@@ -382,7 +412,7 @@
         }
 
         .chart-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             margin-bottom: 12px;
             display: flex;
@@ -399,14 +429,14 @@
 
         .chart-bar {
             flex: 1;
-            background: linear-gradient(to top, #16a34a, #22c55e);
+            background: linear-gradient(to top, var(--success), var(--success-light));
             border-radius: 2px 2px 0 0;
             position: relative;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .chart-bar:hover {
+        .chart-bar:hover, .chart-bar:active {
             opacity: 0.7;
         }
 
@@ -417,7 +447,7 @@
             transform: translateX(-50%);
             font-size: 9px;
             font-weight: 600;
-            color: #16a34a;
+            color: var(--success);
             white-space: nowrap;
             opacity: 0;
             transition: opacity 0.2s;
@@ -432,7 +462,7 @@
             display: flex;
             justify-content: space-between;
             font-size: 11px;
-            color: #64748b;
+            color: var(--gray-500);
         }
 
         .hospital-card {
@@ -445,15 +475,15 @@
             border: 1px solid #fee2e2;
         }
 
-        .hospital-card:hover {
+        .hospital-card:active {
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-color: #dc2626;
+            border-color: var(--danger);
         }
 
         .hospital-name {
             font-size: 12px;
             font-weight: 600;
-            color: #dc2626;
+            color: var(--danger);
             margin-bottom: 4px;
             display: flex;
             align-items: center;
@@ -462,17 +492,20 @@
 
         .hospital-info {
             font-size: 11px;
-            color: #64748b;
+            color: var(--gray-500);
         }
 
         .map-container {
             flex: 1;
             position: relative;
+            width: 100%;
+            height: 100%;
         }
 
         #map {
             width: 100%;
             height: 100%;
+            z-index: 1;
         }
 
         .legend {
@@ -485,6 +518,7 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.15);
             font-size: 11px;
             z-index: 1000;
+            max-width: 200px;
         }
 
         .legend-title {
@@ -507,21 +541,21 @@
 
         .divider {
             height: 1px;
-            background: #e5e7eb;
+            background: var(--gray-200);
             margin: 16px 0;
         }
 
         .loading {
             text-align: center;
             padding: 20px;
-            color: #64748b;
+            color: var(--gray-500);
         }
 
         .user-location-badge {
             position: absolute;
             bottom: 80px;
             right: 20px;
-            background: #16a34a;
+            background: var(--success);
             color: white;
             padding: 10px 14px;
             border-radius: 8px;
@@ -542,19 +576,6 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                max-width: 100vw;
-            }
-            .legend {
-                bottom: 10px;
-                right: 10px;
-                font-size: 10px;
-                padding: 8px;
-            }
-        }
-
         .pulse {
             animation: pulse 2s infinite;
         }
@@ -563,27 +584,232 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                transform: translateX(-100%);
+                z-index: 2000;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .map-container {
+                width: 100%;
+                height: 100%;
+            }
+
+            .btn-menu {
+                display: flex;
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 1500;
+                background: white;
+                color: var(--primary);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                width: 44px;
+                height: 44px;
+                padding: 0;
+            }
+
+            .legend {
+                bottom: 10px;
+                right: 10px;
+                font-size: 10px;
+                padding: 8px;
+                max-width: 150px;
+            }
+
+            .user-location-badge {
+                bottom: 70px;
+                right: 10px;
+                font-size: 11px;
+                padding: 8px 12px;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-gps {
+                grid-column: 1;
+            }
+
+            .btn-sos {
+                grid-column: 1;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .sidebar {
+                width: 320px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            text-align: center;
+        }
+
+        .loading-spinner .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-spinner p {
+            margin-top: 16px;
+            color: var(--gray-700);
+            font-weight: 600;
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            max-width: 90%;
+        }
+
+        .install-prompt.show {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        .install-prompt button {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .close-sidebar {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.1);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .close-sidebar {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>🏔️ Likya Yolu Yükleniyor...</p>
+        </div>
+    </div>
+
+    <div class="install-prompt" id="installPrompt">
+        <span>📱 Uygulamayı yükleyin!</span>
+        <button id="installBtn">Yükle</button>
+        <button onclick="document.getElementById('installPrompt').classList.remove('show')" style="background: transparent; color: white;">✕</button>
+    </div>
+
+    <button class="btn btn-menu" id="menuBtn" aria-label="Menüyü Aç">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <div class="container">
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
+            <button class="close-sidebar" id="closeSidebar" aria-label="Menüyü Kapat">
+                <i class="fas fa-times"></i>
+            </button>
+
             <div class="header">
                 <h1>
                     <i class="fas fa-mountain"></i>
                     Likya Yolu Güvenli Adımlar
                 </h1>
-                <p>32 Etap • 760 km • YZ Destekli Güvenlik Sistemi</p>
+                <p>32 Etap • 760 km • YZ Destekli Güvenlik</p>
             </div>
 
             <div class="controls">
-                <button class="btn btn-gps" id="gpsBtn">
+                <button class="btn btn-gps" id="gpsBtn" aria-label="GPS">
                     <i class="fas fa-location-crosshairs"></i>
-                    <span id="gpsText">GPS'i Başlat</span>
+                    <span id="gpsText">GPS Başlat</span>
                 </button>
-                <button class="btn btn-layer" id="layerBtn">
+                <button class="btn btn-layer" id="layerBtn" aria-label="Harita Katmanı">
                     <i class="fas fa-layer-group"></i>
-                    <span id="layerText">Uydu Görünümü</span>
+                    <span id="layerText">Uydu</span>
+                </button>
+                <button class="btn btn-sos" onclick="window.open('tel:112')" aria-label="Acil Durum">
+                    <i class="fas fa-phone-volume"></i>
+                    ACİL - 112
                 </button>
             </div>
 
@@ -591,9 +817,9 @@
                 <div class="warning-box">
                     <strong>
                         <i class="fas fa-exclamation-triangle"></i>
-                        ABTM Güvenlik Uyarısı
+                        Güvenlik Uyarısı
                     </strong>
-                    Bu sistem, statik rota verileri + anlık hava durumu ile bağlamsal güvenlik tavsiyeleri üretir. Yola çıkmadan önce güncel bilgileri kontrol edin.
+                    Bu sistem anlık hava durumu + rota verileri ile güvenlik tavsiyeleri üretir. Yola çıkmadan önce güncel bilgileri kontrol edin.
                 </div>
 
                 <h2 class="section-title">
@@ -628,24 +854,17 @@
 
                 <h2 class="section-title">
                     <i class="fas fa-list-ol"></i>
-                    32 Etap + ABTM Analizi
+                    32 Etap + Risk Analizi
                 </h2>
 
                 <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all">Tümü (32)</button>
+                    <button class="filter-btn active" data-filter="all">Tümü</button>
                     <button class="filter-btn" data-filter="low">Düşük</button>
                     <button class="filter-btn" data-filter="medium">Orta</button>
                     <button class="filter-btn" data-filter="high">Yüksek</button>
                 </div>
 
                 <div id="stagesList"></div>
-            </div>
-
-            <div style="padding: 16px; border-top: 2px solid #fee2e2;">
-                <button class="btn btn-sos" onclick="window.open('tel:112')">
-                    <i class="fas fa-phone-volume"></i>
-                    ACİL DURUM - 112
-                </button>
             </div>
         </aside>
 
@@ -656,23 +875,27 @@
                 <div class="legend-title">Lejant</div>
                 <div class="legend-item">
                     <div class="legend-line" style="background: #dc2626;"></div>
-                    <span>Bölüm 1 (140 km)</span>
+                    <span>Bölüm 1</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-line" style="background: #2563eb; border-top: 3px dashed #2563eb;"></div>
-                    <span>Bölüm 2 (170 km)</span>
+                    <div class="legend-line" style="background: #2563eb;"></div>
+                    <span>Bölüm 2</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-line" style="background: #16a34a; border-top: 3px dotted #16a34a;"></div>
-                    <span>Bölüm 3 (218 km)</span>
+                    <div class="legend-line" style="background: #16a34a;"></div>
+                    <span>Bölüm 3</span>
                 </div>
                 <div class="legend-item">
-                    <span style="font-size: 14px;">💧</span>
-                    <span>Su Kaynağı (17)</span>
+                    <span>💧</span>
+                    <span>Su Kaynağı</span>
                 </div>
                 <div class="legend-item">
-                    <span style="font-size: 14px;">🏥</span>
-                    <span>Hastane (3)</span>
+                    <span>🏥</span>
+                    <span>Hastane</span>
+                </div>
+                <div class="legend-item">
+                    <span>📍</span>
+                    <span>Konumunuz</span>
                 </div>
             </div>
 
@@ -687,14 +910,49 @@
     <script src="app.js"></script>
     
     <script>
-        // Service Worker kaydı (PWA)
+        let deferredPrompt;
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(reg => console.log('✅ Service Worker kayıtlı'))
-                    .catch(err => console.log('❌ SW hatası:', err));
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('✅ Service Worker registered'))
+                    .catch(err => console.log('❌ SW error:', err));
             });
         }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').classList.add('show');
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+                document.getElementById('installPrompt').classList.remove('show');
+            }
+        });
+
+        const sidebar = document.getElementById('sidebar');
+        const menuBtn = document.getElementById('menuBtn');
+        const closeSidebar = document.getElementById('closeSidebar');
+
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+        });
+
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+        });
+
+        document.getElementById('map').addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        });
     </script>
 </body>
 </html>
